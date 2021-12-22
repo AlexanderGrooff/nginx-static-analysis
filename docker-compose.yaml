@@ -3,3 +3,4 @@ services:
     build: .
     volumes:
     - ./example_nginx:/etc/nginx
+    - .:/project
