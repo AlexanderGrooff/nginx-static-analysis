@@ -1,3 +1,4 @@
 crossplane==0.5.7
 pydantic==1.8.2
 loguru==0.5.3
+prettytable==2.5.0

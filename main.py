@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import sys
 
 from loguru import logger
 
@@ -9,20 +8,19 @@ from nginx_analysis.analysis import (
     parse_config,
 )
 from nginx_analysis.input import get_args
+from nginx_analysis.log import setup_logger
+from nginx_analysis.output import render_directive_matches
 
 if __name__ == "__main__":
     args = get_args()
-
-    log_level = "DEBUG" if args.verbose else "INFO"
-    logger.remove()
-    logger.add(sys.stderr, level=log_level)
+    setup_logger(args.verbose)
 
     root_config = parse_config(args.file)
     directives = get_unique_directives(root_config)
     logger.debug(f"Found directives in config: {directives}")
     directive_matches = get_directive_matches(root_config, args.directive)
-    logger.info(f"Found the following {args.directive} values:")
-    for file_config, line_config in directive_matches:
-        logger.info(
-            f"{file_config.file}:{line_config.line} - {' '.join(line_config.args)}"
-        )
+    if directive_matches:
+        logger.info(f"Found the following {args.directive} values:")
+        render_directive_matches(directive_matches)
+    else:
+        logger.info(f"Found no matches for directive {args.directive}")
