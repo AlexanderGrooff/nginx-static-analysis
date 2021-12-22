@@ -1,9 +1,16 @@
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 import crossplane
 from loguru import logger
 
 from nginx_analysis.dataclasses import NginxFileConfig, NginxLineConfig, RootNginxConfig
+
+
+def set_parent(line_config: NginxLineConfig, parent: Optional[NginxLineConfig] = None):
+    if line_config.block:
+        for block_config in line_config.block:
+            set_parent(block_config, parent=line_config)
+            block_config.file_config = line_config.file_config
 
 
 def parse_config(file_path: str) -> RootNginxConfig:
@@ -12,6 +19,12 @@ def parse_config(file_path: str) -> RootNginxConfig:
     """
     parsed_config = crossplane.parse(file_path)
     root_config = RootNginxConfig(**parsed_config)
+
+    # Add parent to all lines for backtracking
+    for file_config in root_config.config:
+        for line_config in file_config.parsed:
+            line_config.file_config = file_config
+            set_parent(line_config)
     return root_config
 
 

@@ -8,11 +8,8 @@ class NginxLineConfig(BaseModel):
     line: int
     args: List[str]
     block: Optional[List["NginxLineConfig"]]
-
-
-# Fixes the following error:
-# `pydantic.errors.ConfigError: field "block" not yet prepared so type is still a ForwardRef, you might need to call NginxLineConfig.update_forward_refs().`
-NginxLineConfig.update_forward_refs()
+    parent: Optional["NginxLineConfig"]
+    file_config: Optional["NginxFileConfig"]
 
 
 class NginxFileConfig(BaseModel):
@@ -20,6 +17,11 @@ class NginxFileConfig(BaseModel):
     status: str
     errors: List[str]
     parsed: List[NginxLineConfig]
+
+
+# Fixes the following error:
+# `pydantic.errors.ConfigError: field "block" not yet prepared so type is still a ForwardRef, you might need to call NginxLineConfig.update_forward_refs().`
+NginxLineConfig.update_forward_refs()
 
 
 class RootNginxConfig(BaseModel):
