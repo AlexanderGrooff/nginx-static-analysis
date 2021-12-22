@@ -6,6 +6,9 @@ from nginx_analysis.dataclasses import NginxFileConfig, NginxLineConfig, RootNgi
 
 
 def parse_config(file_path: str) -> RootNginxConfig:
+    """
+    Extract and parse the Nginx config from the given file.
+    """
     parsed_config = crossplane.parse(file_path)
     root_config = RootNginxConfig(**parsed_config)
     return root_config
@@ -27,6 +30,9 @@ def get_unique_directives_in_line(line_config: NginxLineConfig) -> Set[str]:
 
 
 def get_unique_directives(root_config: RootNginxConfig) -> List[str]:
+    """
+    Find all unique directives in the given root config
+    """
     unique_directives = set()
     for file_config in root_config.config:
         for line_config in file_config.parsed:
@@ -36,22 +42,28 @@ def get_unique_directives(root_config: RootNginxConfig) -> List[str]:
     return list(unique_directives)
 
 
-def get_directive_values_from_file(directive_name: str, line_config: NginxLineConfig) -> List[str]:
+def get_directive_values_from_line(directive_name: str, line_config: NginxLineConfig) -> List[str]:
+    """
+    Find all values for the given directive name in the line config, and go over blocks recursively
+    """
     values = []
     if line_config.directive == directive_name:
         values += line_config.args
 
     if line_config.block:
         for block_config in line_config.block:
-            values += get_directive_values_from_file(directive_name, block_config)
+            values += get_directive_values_from_line(directive_name, block_config)
     return values
 
 
 def get_directive_values(root_config: RootNginxConfig, directive_name: str) -> List[str]:
+    """
+    Find all values for the given directive name in the root config
+    """
     values = []
     for file_config in root_config.config:
         for line_config in file_config.parsed:
-            line_values = get_directive_values_from_file(directive_name, line_config)
+            line_values = get_directive_values_from_line(directive_name, line_config)
             logger.debug(f"Found directive values on line {line_config.line} in file {file_config.file}: {line_values}")
             values += line_values
     return values
