@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import sys
+
 from loguru import logger
-import crossplane
-from nginx_analysis.analysis import get_directive_values, get_unique_directives, parse_config
 
+from nginx_analysis.analysis import (
+    get_directive_values,
+    get_unique_directives,
+    parse_config,
+)
 from nginx_analysis.input import get_args
-
-
 
 if __name__ == "__main__":
     args = get_args()
