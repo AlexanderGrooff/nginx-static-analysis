@@ -1,9 +1,9 @@
-from typing import List, Set
+from typing import List, Set, Tuple
 
 import crossplane
 from loguru import logger
 
-from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
+from nginx_analysis.dataclasses import NginxFileConfig, NginxLineConfig, RootNginxConfig
 
 
 def parse_config(file_path: str) -> RootNginxConfig:
@@ -47,13 +47,14 @@ def get_unique_directives(root_config: RootNginxConfig) -> List[str]:
 
 def get_directive_values_from_line(
     directive_name: str, line_config: NginxLineConfig
-) -> List[str]:
+) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the line config, and go over blocks recursively
     """
     values = []
     if line_config.directive == directive_name:
-        values += line_config.args
+        logger.debug(f"Line matches {directive_name}: {line_config}")
+        values.append(line_config)
 
     if line_config.block:
         for block_config in line_config.block:
@@ -61,18 +62,22 @@ def get_directive_values_from_line(
     return values
 
 
-def get_directive_values(
+def get_directive_matches(
     root_config: RootNginxConfig, directive_name: str
-) -> List[str]:
+) -> List[Tuple[NginxFileConfig, NginxLineConfig]]:
     """
     Find all values for the given directive name in the root config
     """
     values = []
     for file_config in root_config.config:
         for line_config in file_config.parsed:
-            line_values = get_directive_values_from_line(directive_name, line_config)
-            logger.debug(
-                f"Found directive values on line {line_config.line} in file {file_config.file}: {line_values}"
+            lines_with_directive = get_directive_values_from_line(
+                directive_name, line_config
             )
-            values += line_values
+            if lines_with_directive:
+                for line_with_directive in lines_with_directive:
+                    logger.debug(
+                        f"Found directive values on line {line_with_directive.line} in file {file_config.file}: {line_with_directive.args}"
+                    )
+                    values.append((file_config, line_with_directive))
     return values
