@@ -30,7 +30,13 @@ class NginxFileConfig(BaseModel):
 NginxLineConfig.update_forward_refs()
 
 
+class NginxErrorConfig(BaseModel):
+    file: str
+    error: str
+    line: int
+
+
 class RootNginxConfig(BaseModel):
     status: str
-    errors: List[str]
+    errors: List[NginxErrorConfig]
     config: List[NginxFileConfig]
