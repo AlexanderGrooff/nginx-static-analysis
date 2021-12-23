@@ -1,4 +1,4 @@
-from typing import List, Optional, Set
+from typing import List, Set
 
 import crossplane
 from loguru import logger
@@ -6,23 +6,21 @@ from loguru import logger
 from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
 
 
-def set_parents_of_blocks(
-    line_config: NginxLineConfig, parent: Optional[NginxLineConfig] = None
-):
+def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
+    if block_config.directive == "include":
+        for file_path in block_config.args:
+            nested_file_config = root_config.get_file(file_path)
+            for nested_line_config in nested_file_config.parsed:
+                nested_line_config.parent = block_config
+
+
+def set_parents_of_blocks(root_config: RootNginxConfig, line_config: NginxLineConfig):
     if line_config.block:
         for block_config in line_config.block:
             block_config.parent = line_config
             block_config.file_config = line_config.file_config
-            set_parents_of_blocks(block_config, parent=line_config)
-
-
-def set_parents_of_files(root_config: RootNginxConfig):
-    for file_config in root_config.config:
-        for line_config in file_config.parsed:
-            if line_config.directive == "include":
-                for file_path in line_config.args:
-                    nested_file_config = root_config.get_file(file_path)
-                    nested_file_config.parent = file_config
+            set_parents_of_blocks(root_config, block_config)
+    set_parents_in_include(root_config, line_config)
 
 
 def parse_config(file_path: str) -> RootNginxConfig:
@@ -32,14 +30,11 @@ def parse_config(file_path: str) -> RootNginxConfig:
     parsed_config = crossplane.parse(file_path)
     root_config = RootNginxConfig(**parsed_config)
 
-    # Set parent attribute in file configs
-    set_parents_of_files(root_config)
-
     # Add parent to all lines for backtracking
     for file_config in root_config.config:
         for line_config in file_config.parsed:
             line_config.file_config = file_config
-            set_parents_of_blocks(line_config)
+            set_parents_of_blocks(root_config, line_config)
     return root_config
 
 

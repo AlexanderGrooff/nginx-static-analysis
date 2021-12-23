@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -23,7 +23,7 @@ class NginxFileConfig(BaseModel):
     status: str
     errors: List[str]
     parsed: List[NginxLineConfig]
-    parent: Optional["NginxFileConfig"]
+    included_in: Optional[Tuple["NginxFileConfig", NginxLineConfig]]
 
 
 # Fixes the following error:
