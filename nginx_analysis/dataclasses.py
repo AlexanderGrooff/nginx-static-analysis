@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
@@ -42,8 +43,8 @@ class RootNginxConfig(BaseModel):
     errors: List[NginxErrorConfig]
     config: List[NginxFileConfig]
 
-    def get_file(self, file_path: str) -> NginxFileConfig:
+    def get_file(self, file_path_regex: str) -> NginxFileConfig:
         for file_config in self.config:
-            if file_config.file == file_path:
+            if re.match(file_path_regex, file_config.file):
                 return file_config
-        raise IndexError(f"{file_path} not found in config")
+        raise IndexError(f"{file_path_regex} not found in config")
