@@ -11,6 +11,12 @@ class NginxLineConfig(BaseModel):
     parent: Optional["NginxLineConfig"]
     file_config: Optional["NginxFileConfig"]
 
+    @property
+    def parent_blocks(self) -> List[str]:
+        if not self.parent:
+            return [self.directive]
+        return self.parent.parent_blocks + [self.directive]
+
 
 class NginxFileConfig(BaseModel):
     file: str

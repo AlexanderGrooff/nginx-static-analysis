@@ -1,16 +1,19 @@
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set
 
 import crossplane
 from loguru import logger
 
-from nginx_analysis.dataclasses import NginxFileConfig, NginxLineConfig, RootNginxConfig
+from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
 
 
-def set_parent(line_config: NginxLineConfig, parent: Optional[NginxLineConfig] = None):
+def set_parents_of_blocks(
+    line_config: NginxLineConfig, parent: Optional[NginxLineConfig] = None
+):
     if line_config.block:
         for block_config in line_config.block:
-            set_parent(block_config, parent=line_config)
+            block_config.parent = line_config
             block_config.file_config = line_config.file_config
+            set_parents_of_blocks(block_config, parent=line_config)
 
 
 def parse_config(file_path: str) -> RootNginxConfig:
@@ -24,7 +27,7 @@ def parse_config(file_path: str) -> RootNginxConfig:
     for file_config in root_config.config:
         for line_config in file_config.parsed:
             line_config.file_config = file_config
-            set_parent(line_config)
+            set_parents_of_blocks(line_config)
     return root_config
 
 
@@ -32,7 +35,6 @@ def get_unique_directives_in_line(line_config: NginxLineConfig) -> Set[str]:
     """
     Loop recursively over the line and find unique directives
     """
-    logger.debug(f"Parsing lineconfig {line_config}")
     directives = set()
     directives.add(line_config.directive)
     if line_config.block:
@@ -77,7 +79,7 @@ def get_directive_values_from_line(
 
 def get_directive_matches(
     root_config: RootNginxConfig, directive_name: str
-) -> List[Tuple[NginxFileConfig, NginxLineConfig]]:
+) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the root config
     """
@@ -92,5 +94,5 @@ def get_directive_matches(
                     logger.debug(
                         f"Found directive values on line {line_with_directive.line} in file {file_config.file}: {line_with_directive.args}"
                     )
-                    values.append((file_config, line_with_directive))
+                    values.append(line_with_directive)
     return values
