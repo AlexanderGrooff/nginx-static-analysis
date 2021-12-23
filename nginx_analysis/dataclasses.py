@@ -23,6 +23,7 @@ class NginxFileConfig(BaseModel):
     status: str
     errors: List[str]
     parsed: List[NginxLineConfig]
+    parent: Optional["NginxFileConfig"]
 
 
 # Fixes the following error:
@@ -40,3 +41,9 @@ class RootNginxConfig(BaseModel):
     status: str
     errors: List[NginxErrorConfig]
     config: List[NginxFileConfig]
+
+    def get_file(self, file_path: str) -> NginxFileConfig:
+        for file_config in self.config:
+            if file_config.file == file_path:
+                return file_config
+        raise IndexError(f"{file_path} not found in config")

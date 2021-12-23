@@ -16,12 +16,24 @@ def set_parents_of_blocks(
             set_parents_of_blocks(block_config, parent=line_config)
 
 
+def set_parents_of_files(root_config: RootNginxConfig):
+    for file_config in root_config.config:
+        for line_config in file_config.parsed:
+            if line_config.directive == "include":
+                for file_path in line_config.args:
+                    nested_file_config = root_config.get_file(file_path)
+                    nested_file_config.parent = file_config
+
+
 def parse_config(file_path: str) -> RootNginxConfig:
     """
     Extract and parse the Nginx config from the given file.
     """
     parsed_config = crossplane.parse(file_path)
     root_config = RootNginxConfig(**parsed_config)
+
+    # Set parent attribute in file configs
+    set_parents_of_files(root_config)
 
     # Add parent to all lines for backtracking
     for file_config in root_config.config:
