@@ -18,7 +18,7 @@ def set_parents_of_blocks(root_config: RootNginxConfig, line_config: NginxLineCo
     if line_config.block:
         for block_config in line_config.block:
             block_config.parent = line_config
-            block_config.file_config = line_config.file_config
+            block_config.file = line_config.file
             set_parents_of_blocks(root_config, block_config)
     set_parents_in_include(root_config, line_config)
 
@@ -33,7 +33,7 @@ def parse_config(file_path: str) -> RootNginxConfig:
     # Add parent to all lines for backtracking
     for file_config in root_config.config:
         for line_config in file_config.parsed:
-            line_config.file_config = file_config
+            line_config.file = file_config.file
             set_parents_of_blocks(root_config, line_config)
     return root_config
 

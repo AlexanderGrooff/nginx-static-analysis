@@ -11,8 +11,7 @@ def render_directive_matches(directive_matches: List[NginxLineConfig]):
     directives_table = PrettyTable(headers)
     for line_config in directive_matches:
         logger.debug(f"Rendering line config {line_config}")
-        file_config = line_config.file_config
-        file_line = f"{file_config.file}:{line_config.line}"
+        file_line = f"{line_config.file}:{line_config.line}"
         values = " ".join(line_config.args)
         parent_blocks = " -> ".join(line_config.parent_blocks)
         directives_table.add_row([file_line, values, parent_blocks])
