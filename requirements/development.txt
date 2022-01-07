@@ -3,3 +3,5 @@
 ipython
 docker-compose
 pre-commit
+
+pytest
