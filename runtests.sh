@@ -6,4 +6,8 @@ if [[ ! $(docker-compose ps --services --filter status=running nginx | grep ngin
     docker-compose up -d nginx
 fi
 
-$NGINX_EXEC "pytest"
+if [[ ! $($NGINX_EXEC command -v pytest) ]]; then
+    $NGINX_EXEC python3 -m pip install pytest
+fi
+
+$NGINX_EXEC python3 -m pytest
