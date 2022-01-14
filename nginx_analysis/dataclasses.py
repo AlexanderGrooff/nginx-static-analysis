@@ -67,11 +67,16 @@ class RootNginxConfig(BaseModel):
     errors: List[NginxErrorConfig]
     config: List[NginxFileConfig]
 
-    def get_file(self, file_path_regex: str) -> NginxFileConfig:
+    def get_files(self, file_path_regex: str) -> List[NginxFileConfig]:
+        matching_file_configs = []
         for file_config in self.config:
             if re.match(file_path_regex, str(file_config.file)):
-                return file_config
-        raise IndexError(f"{file_path_regex} not found in config")
+                matching_file_configs.append(file_config)
+
+        if not matching_file_configs:
+            raise IndexError(f"{file_path_regex} not found in config")
+
+        return matching_file_configs
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, RootNginxConfig):

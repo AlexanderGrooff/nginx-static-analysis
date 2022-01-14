@@ -9,9 +9,10 @@ from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
 def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
     if block_config.directive == "include":
         for file_path in block_config.args:
-            nested_file_config = root_config.get_file(file_path)
-            for nested_line_config in nested_file_config.parsed:
-                nested_line_config.parent = block_config
+            nested_file_configs = root_config.get_files(file_path)
+            for nested_file_config in nested_file_configs:
+                for nested_line_config in nested_file_config.parsed:
+                    nested_line_config.parent = block_config
 
 
 def set_parents_of_blocks(root_config: RootNginxConfig, line_config: NginxLineConfig):

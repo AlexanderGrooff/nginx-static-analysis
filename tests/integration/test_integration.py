@@ -35,3 +35,13 @@ class TestIntegration(TestCase):
         ]
         for line in expected_lines:
             self.assertIn(line, lines)
+
+    def test_parent_blocks_are_set_correctly(self):
+        root_config = self.get_example_root_conf()
+        lines = get_directive_matches(root_config, directive_name="server_name")
+        for line in lines:
+            self.assertEqual(line.parent.directive, "server")
+            self.assertRegex(str(line.parent.file), "/etc/nginx/servers/.*.conf")
+            self.assertEqual(line.parent.parent.directive, "include")
+            self.assertEqual(str(line.parent.parent.file), "/etc/nginx/nginx.conf")
+            self.assertEqual(line.parent.parent.parent.directive, "http")
