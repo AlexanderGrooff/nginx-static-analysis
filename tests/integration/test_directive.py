@@ -5,7 +5,7 @@ from nginx_analysis.dataclasses import NginxLineConfig
 from tests.testcase import TestCase
 
 
-class TestIntegration(TestCase):
+class TestDirectiveIntegration(TestCase):
     maxDiff = None
 
     def test_one_user_is_parsed(self):
