@@ -1,9 +1,13 @@
+from pathlib import Path
+
 from nginx_analysis.analysis import get_directive_matches
 from nginx_analysis.dataclasses import NginxLineConfig
 from tests.testcase import TestCase
 
 
 class TestIntegration(TestCase):
+    maxDiff = None
+
     def test_one_user_is_parsed(self):
         expected_line = NginxLineConfig(
             line=1, file="/etc/nginx/nginx.conf", directive="user", args=["app"]
@@ -18,12 +22,16 @@ class TestIntegration(TestCase):
         expected_lines = [
             NginxLineConfig(
                 line=2,
-                file="/etc/nginx/servers/example.com.conf",
+                file=Path("/etc/nginx/servers/example.com.conf"),
                 directive="server_name",
                 args=["example.com", "www.example.com"],
             ),
             NginxLineConfig(
-                line=1, file="/etc/nginx/nginx.conf", directive="user", args=["app"]
+                line=2,
+                file=Path("/etc/nginx/servers/testalex.hypernode.io.conf"),
+                directive="server_name",
+                args=["testalex.hypernode.io"],
             ),
         ]
-        self.assertEqual(lines, expected_lines)
+        for line in expected_lines:
+            self.assertIn(line, lines)

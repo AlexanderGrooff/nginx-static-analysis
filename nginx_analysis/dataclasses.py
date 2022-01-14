@@ -1,8 +1,17 @@
 import re
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, TypeVar
 
 from pydantic import BaseModel
+
+T = TypeVar("T")
+
+
+def compare_objects(this: T, that: T, fields: List[str]) -> bool:
+    for field in fields:
+        if not getattr(this, field) == getattr(that, field):
+            return False
+    return True
 
 
 class NginxLineConfig(BaseModel):
@@ -19,6 +28,13 @@ class NginxLineConfig(BaseModel):
             return [self.directive]
         return self.parent.parent_blocks + [self.directive]
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, NginxLineConfig):
+            return False
+
+        comparison_fields = ["line", "directive", "file", "args"]
+        return compare_objects(self, other, comparison_fields)
+
 
 class NginxFileConfig(BaseModel):
     file: Path
@@ -26,6 +42,13 @@ class NginxFileConfig(BaseModel):
     errors: List[str]
     parsed: List[NginxLineConfig]
     included_in: Optional[Tuple["NginxFileConfig", NginxLineConfig]]
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, NginxFileConfig):
+            return False
+
+        comparison_fields = ["file", "status", "errors", "parsed"]
+        return compare_objects(self, other, comparison_fields)
 
 
 # Fixes the following error:
@@ -49,3 +72,10 @@ class RootNginxConfig(BaseModel):
             if re.match(file_path_regex, str(file_config.file)):
                 return file_config
         raise IndexError(f"{file_path_regex} not found in config")
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, RootNginxConfig):
+            return False
+
+        comparison_fields = ["status", "errors", "config"]
+        return compare_objects(self, other, comparison_fields)
