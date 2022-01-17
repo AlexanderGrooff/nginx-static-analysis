@@ -22,15 +22,13 @@ if __name__ == "__main__":
         logger.debug(f"Found directives in config: {directives}")
         directive_matches = get_directive_matches(root_config, args.directive)
         if directive_matches:
-            logger.info(f"Found the following {args.directive} values:")
+            logger.debug(f"Found the following {args.directive} values:")
             render_directive_matches(directive_matches)
         else:
             logger.info(f"Found no matches for directive {args.directive}")
     if "url" in args:
         server_config = get_server_config_for_url(args.url, root_config)
         if server_config:
-            logger.info(
-                f"Found URL in serverblock {server_config.file}:{server_config.line}"
-            )
+            logger.info(f"{server_config.file}:{server_config.line}")
         else:
             logger.info(f"Url {args.url} doesn't match any config")

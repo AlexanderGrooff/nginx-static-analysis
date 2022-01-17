@@ -48,7 +48,7 @@ def get_port_for_url(url: str) -> int:
     if parsed_url.scheme == "https":
         return 443
 
-    logger.warning(f"Couldn't find port on url {url}. Assuming port 80")
+    logger.debug(f"Couldn't find port on url {url}. Assuming port 80")
     return 80
 
 
@@ -57,7 +57,7 @@ def get_server_config_for_url(
 ) -> Optional[NginxLineConfig]:
     url_domain = urlparse(url).netloc
     url_port = get_port_for_url(url)
-    logger.info(f"Using port {url_port}")
+    logger.debug(f"Using port {url_port}")
     server_name_configs = get_server_configs(config, url_port)
 
     url_server_config = None
@@ -69,12 +69,12 @@ def get_server_config_for_url(
         )
         for server_name_config in server_name_configs:
             if url_domain in server_name_config.args:
-                logger.info(f"Matched server config in {server_config.file}")
+                logger.debug(f"Matched server config in {server_config.file}")
                 url_server_config = server_config
 
     if not url_server_config:
         # Default to the default server config
         url_server_config = get_default_server(config, url_port)
         if url_server_config:
-            logger.info(f"No specific matches found. Using default server")
+            logger.debug(f"No specific matches found. Using default server")
     return url_server_config
