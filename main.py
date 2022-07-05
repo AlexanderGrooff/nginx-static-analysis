@@ -10,7 +10,7 @@ from nginx_analysis.analysis import (
 from nginx_analysis.input import get_args
 from nginx_analysis.log import setup_logger
 from nginx_analysis.output import render_directive_matches
-from nginx_analysis.url import get_server_config_for_url
+from nginx_analysis.url import get_server_configs_for_url
 
 if __name__ == "__main__":
     args = get_args()
@@ -27,8 +27,9 @@ if __name__ == "__main__":
         else:
             logger.info(f"Found no matches for directive {args.directive}")
     if "url" in args:
-        server_config = get_server_config_for_url(args.url, root_config)
-        if server_config:
-            logger.info(f"{server_config.file}:{server_config.line}")
+        server_configs = get_server_configs_for_url(args.url, root_config)
+        if server_configs:
+            for s in server_configs:
+                logger.info(f"{s.file}:{s.line}")
         else:
-            logger.info(f"Url {args.url} doesn't match any config")
+            logger.info(f"Url {args.url} doesn't match any configs")
