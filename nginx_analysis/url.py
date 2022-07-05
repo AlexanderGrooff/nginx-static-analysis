@@ -3,10 +3,7 @@ from urllib.parse import urlparse
 
 from loguru import logger
 
-from nginx_analysis.analysis import (
-    get_directive_matches,
-    get_directive_values_from_line,
-)
+from nginx_analysis.analysis import get_directive_matches, get_lines_with_directive
 from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
 
 
@@ -64,7 +61,7 @@ def get_server_config_for_url(
 
     # Override url server config if it's identical to an existing server name
     for server_config in server_name_configs:
-        server_name_configs = get_directive_values_from_line(
+        server_name_configs = get_lines_with_directive(
             directive_name="server_name", line_config=server_config
         )
         for server_name_config in server_name_configs:
