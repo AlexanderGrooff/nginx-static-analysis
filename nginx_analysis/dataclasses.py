@@ -35,6 +35,9 @@ class NginxLineConfig(BaseModel):
         comparison_fields = ["line", "directive", "file", "args"]
         return compare_objects(self, other, comparison_fields)
 
+    def __str__(self) -> str:
+        return f"{self.file}:{self.line}"
+
 
 class NginxFileConfig(BaseModel):
     file: Path
@@ -49,6 +52,9 @@ class NginxFileConfig(BaseModel):
 
         comparison_fields = ["file", "status", "errors", "parsed"]
         return compare_objects(self, other, comparison_fields)
+
+    def __str__(self) -> str:
+        return f"{self.file}"
 
 
 # Fixes the following error:
