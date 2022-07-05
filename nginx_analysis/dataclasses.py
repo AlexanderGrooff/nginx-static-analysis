@@ -80,7 +80,9 @@ class RootNginxConfig(BaseModel):
                 matching_file_configs.append(file_config)
 
         if not matching_file_configs:
-            raise IndexError(f"{file_path_regex} not found in config")
+            # Wildcards are allowed to have no matches
+            if "*" not in file_path_regex:
+                raise IndexError(f"{file_path_regex} not found in config")
 
         return matching_file_configs
 
