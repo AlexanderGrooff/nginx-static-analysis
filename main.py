@@ -12,7 +12,8 @@ from nginx_analysis.log import setup_logger
 from nginx_analysis.output import render_directive_matches
 from nginx_analysis.url import get_server_configs_for_url
 
-if __name__ == "__main__":
+
+def main():
     args = get_args()
     setup_logger(args.verbose)
 
@@ -33,3 +34,7 @@ if __name__ == "__main__":
                 logger.info(f"{s.file}:{s.line}")
         else:
             logger.info(f"Url {args.url} doesn't match any configs")
+
+
+if __name__ == "__main__":
+    main()

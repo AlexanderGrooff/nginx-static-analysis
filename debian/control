@@ -1,0 +1,5 @@
+Package: nginx-static-analysis
+Version: 0.1.0
+Maintainer: Alexander Grooff <alexandergrooff@gmail.com>
+Architecture: all
+Description: Parse Nginx configurations in a clear manner for debugging purposes
