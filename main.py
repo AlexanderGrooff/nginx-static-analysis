@@ -7,8 +7,7 @@ from nginx_analysis.analysis import (
     get_unique_directives,
     parse_config,
 )
-from nginx_analysis.input import get_args
-from nginx_analysis.log import setup_logger
+from nginx_analysis.input import get_args, setup_logger
 from nginx_analysis.output import render_directive_matches
 from nginx_analysis.url import get_server_configs_for_url
 
