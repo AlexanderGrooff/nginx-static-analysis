@@ -7,7 +7,7 @@ from nginx_analysis.analysis import (
     get_unique_directives,
     parse_config,
 )
-from nginx_analysis.input import get_args, setup_logger
+from nginx_analysis.input import get_args, get_loglines, setup_logger
 from nginx_analysis.log import parse_logline
 from nginx_analysis.output import render_directive_matches
 from nginx_analysis.url import get_server_configs_for_url
@@ -35,17 +35,7 @@ def main():
         else:
             logger.info(f"Url {args.url} doesn't match any configs")
     if "logs" in args:
-        log_lines = []
-        if isinstance(args.logs, list):
-            # Arg is given, not stdin
-            for f in args.logs:
-                log_lines.extend(f.readlines())
-        else:
-            # TODO: fix tail -f
-            for line in args.logs.buffer.raw.readlines():
-                log_lines.append(line.decode("utf-8", errors="ignore"))
-
-        for line in log_lines:
+        for line in get_loglines(args.logs):
             parsed_line = parse_logline(root_config, line)
             logger.info(parsed_line)
 

@@ -1,5 +1,7 @@
 import sys
 from argparse import ArgumentParser, FileType
+from io import TextIOWrapper
+from typing import Iterator, List, Union
 
 from loguru import logger
 
@@ -44,3 +46,18 @@ def get_args():
         help="Log file(s) to parse or stdin",
     )
     return parser.parse_args()
+
+
+def get_loglines(log_input: Union[List[TextIOWrapper], TextIOWrapper]) -> Iterator[str]:
+    if isinstance(log_input, list):
+        # Arg is given, not stdin
+        for f in log_input:
+            for l in f.buffer.readlines():
+                yield l.decode("utf-8", errors="ignore")
+    else:
+        while True:
+            content = log_input.buffer.readline()
+            if not content:
+                break
+            line = content.decode("utf-8", errors="ignore")
+            yield line
