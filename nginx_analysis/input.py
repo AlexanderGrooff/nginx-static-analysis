@@ -32,6 +32,7 @@ def get_args():
     url_parser.add_argument(
         "-H", "--headers", help="Header in the request. Can be used multiple times"
     )
+
     log_parser = subparsers.add_parser(
         "log", help="Parse Nginx logs from stdin or given files"
     )
