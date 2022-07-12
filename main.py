@@ -33,6 +33,15 @@ def main():
                 logger.info(f"{s.file}:{s.line}")
         else:
             logger.info(f"Url {args.url} doesn't match any configs")
+    if "logs" in args:
+        if isinstance(args.logs, list):
+            # Arg is given, not stdin
+            log_lines = []
+            for f in args.logs:
+                log_lines.extend(f.readlines())
+        else:
+            log_lines = args.logs.readlines()
+        logger.info(log_lines)
 
 
 if __name__ == "__main__":

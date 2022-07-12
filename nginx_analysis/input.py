@@ -1,5 +1,5 @@
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, FileType
 
 from loguru import logger
 
@@ -31,5 +31,15 @@ def get_args():
     url_parser.add_argument("url", help="Url to simulate request for")
     url_parser.add_argument(
         "-H", "--headers", help="Header in the request. Can be used multiple times"
+    )
+    log_parser = subparsers.add_parser(
+        "log", help="Parse Nginx logs from stdin or given files"
+    )
+    log_parser.add_argument(
+        "logs",
+        nargs="*",
+        default=sys.stdin,
+        type=FileType("r"),
+        help="Log file(s) to parse or stdin",
     )
     return parser.parse_args()
