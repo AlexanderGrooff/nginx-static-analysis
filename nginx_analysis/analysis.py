@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import List, Optional, Set
 
 import crossplane
 from loguru import logger
@@ -86,7 +86,7 @@ def get_lines_with_directive(
 
 
 def get_directive_matches(
-    root_config: RootNginxConfig, directive_name: str
+    root_config: RootNginxConfig, directive_name: str, value: Optional[str] = None
 ) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the root config
@@ -100,5 +100,8 @@ def get_directive_matches(
                     logger.debug(
                         f"Found directive values on line {line_with_directive.line} in file {file_config.file}: {line_with_directive.args}"
                     )
-                    values.append(line_with_directive)
+
+                    # Only add line if args match value
+                    if value is None or value in line_with_directive.args:
+                        values.append(line_with_directive)
     return values

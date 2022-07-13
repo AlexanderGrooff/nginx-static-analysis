@@ -36,6 +36,22 @@ class TestDirectiveIntegration(TestCase):
         for line in expected_lines:
             self.assertIn(line, lines)
 
+    def test_one_server_name_is_parsed_for_the_given_value(self):
+        root_config = self.get_example_root_conf()
+        lines = get_directive_matches(
+            root_config, directive_name="server_name", value="example.com"
+        )
+        expected_lines = [
+            NginxLineConfig(
+                line=2,
+                file=Path("/etc/nginx/servers/example.com.conf"),
+                directive="server_name",
+                args=["example.com", "www.example.com"],
+            ),
+        ]
+        for line in expected_lines:
+            self.assertIn(line, lines)
+
     def test_parent_blocks_are_set_correctly(self):
         root_config = self.get_example_root_conf()
         lines = get_directive_matches(root_config, directive_name="server_name")

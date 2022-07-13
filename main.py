@@ -21,7 +21,9 @@ def main():
     if "directive" in args:
         directives = get_unique_directives(root_config)
         logger.debug(f"Found directives in config: {directives}")
-        directive_matches = get_directive_matches(root_config, args.directive)
+        directive_matches = get_directive_matches(
+            root_config, args.directive, args.value
+        )
         if directive_matches:
             logger.debug(f"Found the following {args.directive} values:")
             render_directive_matches(directive_matches)

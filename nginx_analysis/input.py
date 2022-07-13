@@ -26,6 +26,7 @@ def get_args():
         "directive", help="Parse directive from configs"
     )
     directive_parser.add_argument("directive", help="Specify directive to look for")
+    directive_parser.add_argument("--value", help="Specify value to look for")
 
     url_parser = subparsers.add_parser(
         "url", help="Find all configs that are hit when making a request"
