@@ -1,9 +1,9 @@
-from typing import List, Optional, Set
+from typing import List, Set
 
 import crossplane
 from loguru import logger
 
-from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
+from nginx_analysis.dataclasses import DirectiveFilter, NginxLineConfig, RootNginxConfig
 
 
 def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
@@ -86,7 +86,8 @@ def get_lines_with_directive(
 
 
 def get_directive_matches(
-    root_config: RootNginxConfig, directive_name: str, value: Optional[str] = None
+    root_config: RootNginxConfig,
+    dfilter: DirectiveFilter,
 ) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the root config
@@ -94,7 +95,9 @@ def get_directive_matches(
     values = []
     for file_config in root_config.config:
         for line_config in file_config.parsed:
-            lines_with_directive = get_lines_with_directive(directive_name, line_config)
+            lines_with_directive = get_lines_with_directive(
+                dfilter.directive, line_config
+            )
             if lines_with_directive:
                 for line_with_directive in lines_with_directive:
                     logger.debug(
@@ -102,6 +105,9 @@ def get_directive_matches(
                     )
 
                     # Only add line if args match value
-                    if value is None or value in line_with_directive.args:
+                    if (
+                        dfilter.value is None
+                        or dfilter.value in line_with_directive.args
+                    ):
                         values.append(line_with_directive)
     return values

@@ -4,7 +4,7 @@ from typing import List
 from loguru import logger
 
 from nginx_analysis.analysis import get_directive_matches
-from nginx_analysis.dataclasses import RootNginxConfig
+from nginx_analysis.dataclasses import DirectiveFilter, RootNginxConfig
 
 
 def get_all_nginx_logformats(root_config: RootNginxConfig) -> List[str]:
@@ -20,7 +20,9 @@ def get_all_nginx_logformats(root_config: RootNginxConfig) -> List[str]:
         '"$http_referer" "$http_user_agent"'
     )
     # TODO: Only match logformat for matching logfile
-    log_format_lines = get_directive_matches(root_config, "log_format")
+    log_format_lines = get_directive_matches(
+        root_config, DirectiveFilter(directive="log_format")
+    )
     if not log_format_lines:
         return [default]
 

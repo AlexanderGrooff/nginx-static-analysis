@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 from loguru import logger
 
 from nginx_analysis.analysis import get_directive_matches, get_lines_with_directive
-from nginx_analysis.dataclasses import NginxLineConfig, RootNginxConfig
+from nginx_analysis.dataclasses import DirectiveFilter, NginxLineConfig, RootNginxConfig
 
 
 def get_parent_server_block(line_config: NginxLineConfig) -> NginxLineConfig:
@@ -16,7 +16,9 @@ def get_parent_server_block(line_config: NginxLineConfig) -> NginxLineConfig:
 def get_server_configs(
     config: RootNginxConfig, port: Optional[int]
 ) -> List[NginxLineConfig]:
-    listen_directives = get_directive_matches(config, directive_name="listen")
+    listen_directives = get_directive_matches(
+        config, DirectiveFilter(directive="listen")
+    )
     server_configs = []
     for d in listen_directives:
         if (port is None) or (str(port) in d.args):
@@ -30,7 +32,9 @@ def get_default_servers(
     config: RootNginxConfig, port: Optional[int]
 ) -> List[NginxLineConfig]:
     # Look for default_server in listen directives
-    listen_directives = get_directive_matches(config, directive_name="listen")
+    listen_directives = get_directive_matches(
+        config, DirectiveFilter(directive="listen")
+    )
     server_configs = []
     for d in listen_directives:
         if ((port is None) or (str(port) in d.args)) and "default_server" in d.args:

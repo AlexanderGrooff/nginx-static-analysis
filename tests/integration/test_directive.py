@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from nginx_analysis.analysis import get_directive_matches
-from nginx_analysis.dataclasses import NginxLineConfig
+from nginx_analysis.dataclasses import DirectiveFilter, NginxLineConfig
 from tests.testcase import TestCase
 
 
@@ -13,12 +13,14 @@ class TestDirectiveIntegration(TestCase):
             line=1, file="/etc/nginx/nginx.conf", directive="user", args=["app"]
         )
         root_config = self.get_example_root_conf()
-        lines = get_directive_matches(root_config, directive_name="user")
+        lines = get_directive_matches(root_config, DirectiveFilter(directive="user"))
         self.assertEqual(lines[0], expected_line)
 
     def test_two_server_names_are_parsed(self):
         root_config = self.get_example_root_conf()
-        lines = get_directive_matches(root_config, directive_name="server_name")
+        lines = get_directive_matches(
+            root_config, DirectiveFilter(directive="server_name")
+        )
         expected_lines = [
             NginxLineConfig(
                 line=2,
@@ -39,7 +41,7 @@ class TestDirectiveIntegration(TestCase):
     def test_one_server_name_is_parsed_for_the_given_value(self):
         root_config = self.get_example_root_conf()
         lines = get_directive_matches(
-            root_config, directive_name="server_name", value="example.com"
+            root_config, DirectiveFilter(directive="server_name", value="example.com")
         )
         expected_lines = [
             NginxLineConfig(
@@ -54,7 +56,9 @@ class TestDirectiveIntegration(TestCase):
 
     def test_parent_blocks_are_set_correctly(self):
         root_config = self.get_example_root_conf()
-        lines = get_directive_matches(root_config, directive_name="server_name")
+        lines = get_directive_matches(
+            root_config, DirectiveFilter(directive="server_name")
+        )
         for line in lines:
             self.assertEqual(line.parent.directive, "server")
             self.assertRegex(str(line.parent.file), "/etc/nginx/servers/.*.conf")

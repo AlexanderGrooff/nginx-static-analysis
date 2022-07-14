@@ -14,6 +14,11 @@ def compare_objects(this: T, that: T, fields: List[str]) -> bool:
     return True
 
 
+class DirectiveFilter(BaseModel):
+    directive: str
+    value: Optional[str] = None
+
+
 class NginxLineConfig(BaseModel):
     directive: str
     line: int
