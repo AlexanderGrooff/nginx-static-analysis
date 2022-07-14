@@ -19,10 +19,10 @@ def main():
     setup_logger(args.verbose)
 
     root_config = parse_config(args.file)
-    if "directive" in args:
+    if "directives" in args:
         directives = get_unique_directives(root_config)
         logger.debug(f"Found directives in config: {directives}")
-        dfilters = args_to_filter([args.directive], [args.value])
+        dfilters = args_to_filter(args.directives, args.value)
         for dfilter in dfilters:
             directive_matches = get_directive_matches(root_config, dfilter)
             if directive_matches:
