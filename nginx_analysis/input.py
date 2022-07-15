@@ -40,10 +40,8 @@ def get_args():
         "-H", "--headers", help="Header in the request. Can be used multiple times"
     )
 
-    log_parser = subparsers.add_parser(
-        "log", help="Parse Nginx logs from stdin or given files"
-    )
-    log_parser.add_argument(
+    # Stdin logs
+    parser.add_argument(
         "logs",
         nargs="*",
         default=sys.stdin,

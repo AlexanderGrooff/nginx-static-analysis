@@ -25,7 +25,11 @@ def logline_to_filters(logline: dict) -> List[DirectiveFilter]:
             DirectiveFilter(directive="server_name", value=logline["server_name"])
         )
     if "request" in logline:
-        location = logline["request"].split(" ")[1]
-        filters.append(DirectiveFilter(directive="location", value=location))
+        try:
+            location = logline["request"].split(" ")[1]
+        except IndexError:
+            pass
+        else:
+            filters.append(DirectiveFilter(directive="location", value=location))
 
     return filters
