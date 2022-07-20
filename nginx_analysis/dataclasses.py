@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, Iterable, List, Optional, Tuple, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -17,6 +17,49 @@ def compare_objects(this: T, that: T, fields: List[str]) -> bool:
 class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None
+
+
+class CombinedFilters(BaseModel):
+    filters: List[Union[DirectiveFilter, "CombinedFilters"]] = []
+    operator: Callable[..., bool] = any
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def match(self, line: "NginxLineConfig") -> bool:
+        matches = []
+        for f in self.filters:
+            if isinstance(f, DirectiveFilter):
+                if line.directive == f.directive:
+                    if f.value and f.value not in line.args:
+                        matches.append(False)
+                    else:
+                        matches.append(True)
+                else:
+                    matches.append(False)
+            elif isinstance(f, CombinedFilters):
+                matches.append(f.match(line))
+        return self.operator(matches)
+
+    def __add__(
+        self, other: Union[DirectiveFilter, "CombinedFilters"]
+    ) -> "CombinedFilters":
+        self.filters.append(other)
+        return self
+
+    def __iter__(self):
+        return self.filters
+
+
+CombinedFilters.update_forward_refs()
+
+
+class AnyFilter(CombinedFilters):
+    operator: Callable[[Iterable], bool] = any
+
+
+class AllFilter(CombinedFilters):
+    operator: Callable[[Iterable], bool] = all
 
 
 class NginxLineConfig(BaseModel):

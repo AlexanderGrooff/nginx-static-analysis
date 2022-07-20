@@ -1,5 +1,5 @@
-from nginx_analysis.analysis import get_lines_with_directive
-from nginx_analysis.dataclasses import NginxLineConfig
+from nginx_analysis.analysis import get_lines_matching_filter
+from nginx_analysis.dataclasses import CombinedFilters, DirectiveFilter, NginxLineConfig
 from tests.testcase import TestCase
 
 
@@ -11,7 +11,9 @@ class TestGetDirectiveValuesFromLine(TestCase):
             args=["example.com"],
             block=[],
         )
-        assert get_lines_with_directive("foo", line_config) == []
+        filters = CombinedFilters(filters=[DirectiveFilter(directive="foo")])
+        ret = get_lines_matching_filter(filters, line_config)
+        self.assertEqual(ret, [])
 
     def test_return_current_line(self):
         line_config = NginxLineConfig(
@@ -20,7 +22,8 @@ class TestGetDirectiveValuesFromLine(TestCase):
             args=["example.com"],
             block=[],
         )
-        ret = get_lines_with_directive("server_name", line_config)
+        filters = CombinedFilters(filters=[DirectiveFilter(directive="server_name")])
+        ret = get_lines_matching_filter(filters, line_config)
         self.assertEqual(ret, [line_config])
 
     def test_return_nested_line(self):
@@ -36,7 +39,8 @@ class TestGetDirectiveValuesFromLine(TestCase):
             args=[],
             block=[nested_line],
         )
-        ret = get_lines_with_directive("server_name", parent_line)
+        filters = CombinedFilters(filters=[DirectiveFilter(directive="server_name")])
+        ret = get_lines_matching_filter(filters, parent_line)
         self.assertEqual(ret, [nested_line])
 
     def test_return_parent_and_nested_line(self):
@@ -52,5 +56,6 @@ class TestGetDirectiveValuesFromLine(TestCase):
             args=["parent.com"],
             block=[nested_line],
         )
-        ret = get_lines_with_directive("server_name", parent_line)
+        filters = CombinedFilters(filters=[DirectiveFilter(directive="server_name")])
+        ret = get_lines_matching_filter(filters, parent_line)
         self.assertEqual(ret, [parent_line, nested_line])

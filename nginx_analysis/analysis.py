@@ -3,7 +3,7 @@ from typing import List, Set
 import crossplane
 from loguru import logger
 
-from nginx_analysis.dataclasses import DirectiveFilter, NginxLineConfig, RootNginxConfig
+from nginx_analysis.dataclasses import CombinedFilters, NginxLineConfig, RootNginxConfig
 
 
 def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
@@ -68,26 +68,25 @@ def get_unique_directives(root_config: RootNginxConfig) -> List[str]:
     return list(unique_directives)
 
 
-def get_lines_with_directive(
-    directive_name: str, line_config: NginxLineConfig
+def get_lines_matching_filter(
+    filters: CombinedFilters, line_config: NginxLineConfig
 ) -> List[NginxLineConfig]:
     """
     Find lines with the given directive name recursively in the given line config
     """
     values = []
-    if line_config.directive == directive_name:
-        logger.debug(f"Line matches {directive_name}: {line_config}")
+    if filters.match(line_config):
         values.append(line_config)
 
     if line_config.block:
         for block_config in line_config.block:
-            values += get_lines_with_directive(directive_name, block_config)
+            values += get_lines_matching_filter(filters, block_config)
     return values
 
 
 def get_directive_matches(
     root_config: RootNginxConfig,
-    dfilter: DirectiveFilter,
+    filters: CombinedFilters,
 ) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the root config
@@ -95,19 +94,11 @@ def get_directive_matches(
     values = []
     for file_config in root_config.config:
         for line_config in file_config.parsed:
-            lines_with_directive = get_lines_with_directive(
-                dfilter.directive, line_config
-            )
+            lines_with_directive = get_lines_matching_filter(filters, line_config)
             if lines_with_directive:
                 for line_with_directive in lines_with_directive:
                     logger.debug(
                         f"Found directive values on line {line_with_directive.line} in file {file_config.file}: {line_with_directive.args}"
                     )
-
-                    # Only add line if args match value
-                    if (
-                        dfilter.value is None
-                        or dfilter.value in line_with_directive.args
-                    ):
-                        values.append(line_with_directive)
+                    values.append(line_with_directive)
     return values

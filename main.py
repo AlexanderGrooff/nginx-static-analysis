@@ -7,6 +7,7 @@ from nginx_analysis.analysis import (
     get_unique_directives,
     parse_config,
 )
+from nginx_analysis.dataclasses import AllFilter
 from nginx_analysis.filter import args_to_filter, logline_to_filters
 from nginx_analysis.input import get_args, get_loglines, setup_logger
 from nginx_analysis.log import parse_logline
@@ -19,27 +20,26 @@ def main():
     setup_logger(args.verbose)
 
     root_config = parse_config(args.file)
-    filters = []
+    filters = AllFilter()
     if "logs" in args:
         for line in get_loglines(args.logs):
             parsed_line = parse_logline(root_config, line)
             logger.debug(parsed_line)
             log_filters = logline_to_filters(parsed_line)
-            filters.extend(log_filters)
+            filters += log_filters
 
     if "directives" in args:
         directives = get_unique_directives(root_config)
         logger.debug(f"Found directives in config: {directives}")
         arg_filters = args_to_filter(args.directives, args.value)
-        filters.extend(arg_filters)
+        filters += arg_filters
 
-        for dfilter in filters:
-            directive_matches = get_directive_matches(root_config, dfilter)
-            if directive_matches:
-                logger.debug(f"Found the following {dfilter.directive} values:")
-                render_directive_matches(directive_matches)
-            else:
-                logger.info(f"Found no matches for directive {dfilter.directive}")
+        directive_matches = get_directive_matches(root_config, filters)
+        if directive_matches:
+            logger.debug(f"Found the following values:")
+            render_directive_matches(directive_matches)
+        else:
+            logger.info(f"Found no matches")
 
     if "url" in args:
         server_configs = get_server_configs_for_url(args.url, root_config)

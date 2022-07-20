@@ -1,11 +1,16 @@
 from typing import List, Optional
 
-from nginx_analysis.dataclasses import DirectiveFilter
+from nginx_analysis.dataclasses import (
+    AllFilter,
+    AnyFilter,
+    CombinedFilters,
+    DirectiveFilter,
+)
 
 
 def args_to_filter(
     directives: List[str], values: List[Optional[str]]
-) -> List[DirectiveFilter]:
+) -> CombinedFilters:
     if len(values) > len(directives):
         raise RuntimeError(f"Found more values than directives")
 
@@ -15,14 +20,18 @@ def args_to_filter(
         else:
             raise RuntimeError(f"Found more than one directive without value")
 
-    return [DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)]
+    return AnyFilter(
+        filters=[
+            DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)
+        ]
+    )
 
 
-def logline_to_filters(logline: dict) -> List[DirectiveFilter]:
-    filters = []
+def logline_to_filters(logline: dict) -> CombinedFilters:
+    filters = AllFilter()
     if "server_name" in logline:
-        filters.append(
-            DirectiveFilter(directive="server_name", value=logline["server_name"])
+        filters += DirectiveFilter(
+            directive="server_name", value=logline["server_name"]
         )
     if "request" in logline:
         try:
@@ -30,6 +39,6 @@ def logline_to_filters(logline: dict) -> List[DirectiveFilter]:
         except IndexError:
             pass
         else:
-            filters.append(DirectiveFilter(directive="location", value=location))
+            filters += DirectiveFilter(directive="location", value=location)
 
     return filters

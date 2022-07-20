@@ -3,8 +3,13 @@ from urllib.parse import urlparse
 
 from loguru import logger
 
-from nginx_analysis.analysis import get_directive_matches, get_lines_with_directive
-from nginx_analysis.dataclasses import DirectiveFilter, NginxLineConfig, RootNginxConfig
+from nginx_analysis.analysis import get_directive_matches, get_lines_matching_filter
+from nginx_analysis.dataclasses import (
+    CombinedFilters,
+    DirectiveFilter,
+    NginxLineConfig,
+    RootNginxConfig,
+)
 
 
 def get_parent_server_block(line_config: NginxLineConfig) -> NginxLineConfig:
@@ -17,7 +22,7 @@ def get_server_configs(
     config: RootNginxConfig, port: Optional[int]
 ) -> List[NginxLineConfig]:
     listen_directives = get_directive_matches(
-        config, DirectiveFilter(directive="listen")
+        config, CombinedFilters(filters=[DirectiveFilter(directive="listen")])
     )
     server_configs = []
     for d in listen_directives:
@@ -33,7 +38,7 @@ def get_default_servers(
 ) -> List[NginxLineConfig]:
     # Look for default_server in listen directives
     listen_directives = get_directive_matches(
-        config, DirectiveFilter(directive="listen")
+        config, CombinedFilters(filters=[DirectiveFilter(directive="listen")])
     )
     server_configs = []
     for d in listen_directives:
@@ -80,8 +85,9 @@ def get_server_configs_for_url(
 
     # Override url server config if it's identical to an existing server name
     for server_config in server_name_configs:
-        server_name_configs = get_lines_with_directive(
-            directive_name="server_name", line_config=server_config
+        server_name_configs = get_lines_matching_filter(
+            CombinedFilters(filters=[DirectiveFilter(directive="server_name")]),
+            line_config=server_config,
         )
         for server_name_config in server_name_configs:
             if url_domain in server_name_config.args:
