@@ -18,6 +18,13 @@ class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None
 
+    def match(self, line: "NginxLineConfig") -> bool:
+        if line.directive != self.directive:
+            return False
+        if self.value is None:
+            return True
+        return self.value in line.args
+
 
 class CombinedFilters(BaseModel):
     filters: List[Union[DirectiveFilter, "CombinedFilters"]] = []
@@ -29,16 +36,7 @@ class CombinedFilters(BaseModel):
     def match(self, line: "NginxLineConfig") -> bool:
         matches = []
         for f in self.filters:
-            if isinstance(f, DirectiveFilter):
-                if line.directive == f.directive:
-                    if f.value and f.value not in line.args:
-                        matches.append(False)
-                    else:
-                        matches.append(True)
-                else:
-                    matches.append(False)
-            elif isinstance(f, CombinedFilters):
-                matches.append(f.match(line))
+            matches.append(f.match(line))
         return self.operator(matches)
 
     def __add__(
