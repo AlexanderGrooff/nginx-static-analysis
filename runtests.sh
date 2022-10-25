@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NGINX_EXEC="docker-compose exec nginx"
+NGINX_EXEC="docker-compose exec -T nginx"
 
 if [[ ! $(docker-compose ps --services --filter status=running nginx | grep nginx) ]]; then
     docker-compose up -d nginx
