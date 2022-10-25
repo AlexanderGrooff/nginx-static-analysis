@@ -2,3 +2,8 @@
 __pycache__
 .mypy_cache
 *.pyc
+
+# Build artifacts
+deb_dist
+dist
+nginx-static-analysis*.tar.gz
