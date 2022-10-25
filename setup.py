@@ -18,7 +18,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="nginx-static-analysis",
-    version="0.1.1",
+    version="0.1.2",
     description="Parse Nginx configurations in a clear manner for debugging purposes",
     url="https://github.com/AlexanderGrooff/nginx-static-analysis",
     packages=find_packages(include=["nginx_analysis"], exclude=["tests"]),
