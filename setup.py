@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+from pathlib import Path
 
 from setuptools import find_packages, setup
 
@@ -9,6 +10,10 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 def get_requires_based_on_dist():
     return ["crossplane"]
+
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 
 setup(
@@ -25,4 +30,6 @@ setup(
             "nginx-static-analysis = nginx_analysis.main:main",
         ],
     },
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 )
