@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: python setup.py install
+      - run: sudo python setup.py install
       - run: nginx-static-analysis --help
   integration_test:
     runs-on: ubuntu-latest
