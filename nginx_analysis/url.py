@@ -13,7 +13,7 @@ from nginx_analysis.dataclasses import (
 
 
 def get_parent_server_block(line_config: NginxLineConfig) -> NginxLineConfig:
-    if line_config.directive == "server":
+    if line_config.directive == "server" or not line_config.parent:
         return line_config
     return get_parent_server_block(line_config.parent)
 

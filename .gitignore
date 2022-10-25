@@ -4,6 +4,8 @@ __pycache__
 *.pyc
 
 # Build artifacts
+*.egg-info
+build
 deb_dist
 dist
 nginx-static-analysis*.tar.gz
