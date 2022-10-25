@@ -8,10 +8,6 @@ from setuptools import find_packages, setup
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
-def get_requires_based_on_dist():
-    return ["crossplane"]
-
-
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
@@ -24,7 +20,7 @@ setup(
     packages=find_packages(include=["nginx_analysis"], exclude=["tests"]),
     author="Alexander Grooff",
     author_email="alexandergrooff@gmail.com",
-    install_requires=get_requires_based_on_dist(),
+    install_requires=open("requirements/base.txt").read().splitlines(),
     entry_points={
         "console_scripts": [
             "nginx-static-analysis = nginx_analysis.main:main",
