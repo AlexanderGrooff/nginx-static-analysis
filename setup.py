@@ -20,7 +20,7 @@ prettytable==2.5.0
 
 setup(
     name="nginx-static-analysis",
-    version="0.1.4",
+    version="0.1.5",
     description="Parse Nginx configurations in a clear manner for debugging purposes",
     url="https://github.com/AlexanderGrooff/nginx-static-analysis",
     packages=find_packages(
