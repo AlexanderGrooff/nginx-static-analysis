@@ -58,7 +58,7 @@ def get_loglines(log_input: Union[List[TextIOWrapper], TextIOWrapper]) -> Iterat
             for l in f.buffer.readlines():
                 yield l.decode("utf-8", errors="ignore")
     else:
-        while True:
+        while not log_input.isatty():
             content = log_input.buffer.readline()
             if not content:
                 break
