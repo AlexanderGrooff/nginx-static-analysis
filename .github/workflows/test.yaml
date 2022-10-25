@@ -6,6 +6,16 @@ on:
       - main
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build package
+        run: ./build.sh
+        shell: bash
+        env:
+          LATEST_VERSION: ${{ github.event.release.tag_name }}
+          VERSION: ${{ github.sha }}
   integration_test:
     runs-on: ubuntu-latest
     steps:
