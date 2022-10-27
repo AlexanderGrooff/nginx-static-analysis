@@ -27,7 +27,7 @@ def args_to_filter(
     )
 
 
-def logline_to_filters(logline: dict) -> CombinedFilters:
+def logline_to_filter(logline: dict) -> CombinedFilters:
     filters = AllFilter()
     if "server_name" in logline:
         filters += DirectiveFilter(

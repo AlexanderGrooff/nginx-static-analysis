@@ -51,3 +51,20 @@ By default it parses `/etc/nginx/nginx.conf` and all includes, but you can speci
 app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis -f /some/other/nginx.conf directive location
 ...
 ```
+
+## Feeding logs into the analysis
+
+You can feed access/error logs into the analysis by piping it into stdin:
+```
+app@wifbtb-testalex-magweb-cmbl:~$ tail /var/log/nginx/access.log -n1 | nginx-static-analysis d location
++----------------------------------------------------+--------+------------------------------------------+
+|                        File                        | Values |                Directives                |
++----------------------------------------------------+--------+------------------------------------------+
+|            /etc/nginx/testsite.conf:18             |   /    |  http -> include -> server -> location   |
+| /etc/nginx/sites/http.testalex.hypernode.io.conf:8 |   /    |            server -> location            |
+|            /etc/nginx/magento2.conf:17             |   /    | server -> include -> include -> location |
++----------------------------------------------------+--------+------------------------------------------+
+```
+
+The analysis creates filters based on the incoming loglines. Those filters are combined with the arguments given
+to the `nginx-static-analysis` command.
