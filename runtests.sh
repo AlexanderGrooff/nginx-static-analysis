@@ -15,4 +15,4 @@ if [[ ! $($NGINX_EXEC command -v pytest) ]]; then
 fi
 
 $NGINX_EXEC python3 -m pytest
-$NGINX_EXEC ./tests/integration_tests.sh
+$NGINX_EXEC ./scripts/integration_tests.sh
