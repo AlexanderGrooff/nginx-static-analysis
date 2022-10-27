@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+export DEBIAN_FRONTEND=noninteractive
+
+set -e
+
 NGINX_EXEC="docker-compose exec -T nginx"
 
 if [[ ! $(docker-compose ps --services --filter status=running nginx | grep nginx) ]]; then
@@ -11,4 +15,4 @@ if [[ ! $($NGINX_EXEC command -v pytest) ]]; then
 fi
 
 $NGINX_EXEC python3 -m pytest
-$NGINX_EXEC ./tests/integration_tests.sh
+$NGINX_EXEC ./scripts/integration_tests.sh

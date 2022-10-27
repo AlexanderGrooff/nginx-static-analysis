@@ -31,7 +31,7 @@ def main():
     if "directives" in args:
         directives = get_unique_directives(root_config)
         logger.debug(f"Found directives in config: {directives}")
-        arg_filters = args_to_filter(args.directives, args.value)
+        arg_filters = args_to_filter(args.directives, args.values)
         filters += arg_filters
 
         directive_matches = get_directive_matches(root_config, filters)
