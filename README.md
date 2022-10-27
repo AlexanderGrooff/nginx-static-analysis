@@ -1,5 +1,7 @@
 # Nginx Static Analysis
 
+[![nginx-static-analysis](https://img.shields.io/pypi/v/nginx-static-analysis)](https://pypi.org/project/nginx-static-analysis/)
+
 Parse Nginx configurations on your host and filter for directives/values.
 
 Largely powered by [Crossplane](https://github.com/nginxinc/crossplane).
