@@ -1,5 +1,5 @@
 import sys
-from argparse import ArgumentParser, FileType
+from argparse import SUPPRESS, ArgumentParser, FileType
 from io import TextIOWrapper
 from typing import Iterator, List, Optional, Union
 
@@ -42,11 +42,7 @@ def get_args(args: Optional[List[str]] = None):
 
     # Stdin logs
     parser.add_argument(
-        "logs",
-        nargs="*",
-        default=sys.stdin,
-        type=FileType("r"),
-        help="Log file(s) to parse or stdin",
+        "logs", nargs="*", default=sys.stdin, type=FileType("r"), help=SUPPRESS
     )
     return parser.parse_args(args=args)
 
