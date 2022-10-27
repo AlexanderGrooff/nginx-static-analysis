@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+export DEBIAN_FRONTEND=noninteractive
+
+set -e
+
 NGINX_EXEC="docker-compose exec -T nginx"
 
 if [[ ! $(docker-compose ps --services --filter status=running nginx | grep nginx) ]]; then
