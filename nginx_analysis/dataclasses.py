@@ -19,11 +19,18 @@ class DirectiveFilter(BaseModel):
     value: Optional[str] = None
 
     def match(self, line: "NginxLineConfig") -> bool:
-        if line.directive != self.directive:
-            return False
-        if self.value is None:
-            return True
-        return self.value in line.args
+        """
+        Check if the given line or any of the parent lines matches the filter.
+        For example, if the filter is for the directive "location" with value "/",
+        then the location itself would match but also any child lines under that location.
+        """
+        if line.directive == self.directive:
+            if self.value is None or self.value in line.args:
+                return True
+
+        if line.parent:
+            return self.match(line.parent)
+        return False
 
 
 class CombinedFilters(BaseModel):

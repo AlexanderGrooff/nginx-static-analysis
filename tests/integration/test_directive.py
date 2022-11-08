@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from nginx_analysis.analysis import get_directive_matches
+from nginx_analysis.analysis import filter_config
 from nginx_analysis.dataclasses import AllFilter, DirectiveFilter, NginxLineConfig
 from tests.testcase import TestCase
 
@@ -14,7 +14,7 @@ class TestDirectiveIntegration(TestCase):
         )
         root_config = self.get_example_root_conf()
         user_filters = AllFilter(filters=[DirectiveFilter(directive="user")])
-        lines = get_directive_matches(root_config, user_filters)
+        lines = filter_config(root_config, user_filters)
         self.assertEqual(lines[0], expected_line)
 
     def test_two_server_names_are_parsed(self):
@@ -22,7 +22,7 @@ class TestDirectiveIntegration(TestCase):
         server_name_filters = AllFilter(
             filters=[DirectiveFilter(directive="server_name")]
         )
-        lines = get_directive_matches(root_config, server_name_filters)
+        lines = filter_config(root_config, server_name_filters)
         expected_lines = [
             NginxLineConfig(
                 line=2,
@@ -45,7 +45,7 @@ class TestDirectiveIntegration(TestCase):
         server_name_filters = AllFilter(
             filters=[DirectiveFilter(directive="server_name", value="example.com")]
         )
-        lines = get_directive_matches(root_config, server_name_filters)
+        lines = filter_config(root_config, server_name_filters)
         expected_lines = [
             NginxLineConfig(
                 line=2,
@@ -62,7 +62,7 @@ class TestDirectiveIntegration(TestCase):
         server_name_filters = AllFilter(
             filters=[DirectiveFilter(directive="server_name")]
         )
-        lines = get_directive_matches(root_config, server_name_filters)
+        lines = filter_config(root_config, server_name_filters)
         for line in lines:
             self.assertEqual(line.parent.directive, "server")
             self.assertRegex(str(line.parent.file), "/etc/nginx/servers/.*.conf")

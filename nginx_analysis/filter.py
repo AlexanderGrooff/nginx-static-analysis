@@ -1,26 +1,12 @@
-from typing import List, Optional
+from typing import List
 
-from nginx_analysis.dataclasses import (
-    AllFilter,
-    AnyFilter,
-    CombinedFilters,
-    DirectiveFilter,
-)
+from nginx_analysis.dataclasses import AllFilter, CombinedFilters, DirectiveFilter
 
 
-def args_to_filter(
-    directives: List[str], values: List[Optional[str]]
-) -> CombinedFilters:
-    if len(values) > len(directives):
-        raise RuntimeError(f"Found more values than directives")
-
-    if len(directives) > len(values):
-        if len(directives) == len(values) + 1:
-            values.append(None)
-        else:
-            raise RuntimeError(f"Found more than one directive without value")
-
-    return AnyFilter(
+def args_to_filter(filter_args: List[str]) -> CombinedFilters:
+    directives = [f.split("=")[0] for f in filter_args]
+    values = ["".join(f.split("=")[1:]) for f in filter_args]
+    return AllFilter(
         filters=[
             DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)
         ]

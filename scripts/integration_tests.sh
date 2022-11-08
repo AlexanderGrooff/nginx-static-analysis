@@ -15,18 +15,14 @@ NSA=/usr/local/bin/nginx-static-analysis
 
 # Ensure the basic functionality works
 $NSA --help || (echo "NOT OK" && exit 1)
-$NSA directive server_name || (echo "NOT OK" && exit 1)
+$NSA -d server_name || (echo "NOT OK" && exit 1)
 # Garbage in --> no matches
-$NSA directive blabla |& grep "Found no matches" || (echo "NOT OK" && exit 1)
+$NSA -d blabla |& grep "Found no matches" || (echo "NOT OK" && exit 1)
 # Value should show the value in table format
-$NSA directive server_name --values example.com |& grep example.com || (echo "NOT OK" && exit 1)
+$NSA -d server_name -f server_name=example.com |& grep example.com || (echo "NOT OK" && exit 1)
 # Value should not show other values
-$NSA directive server_name --values banaan.com |& grep example.com && (echo "NOT OK" && exit 1)
-# Accept multiple directives with n-1 values
-$NSA directive server_name location --values example.com || (echo "NOT OK" && exit 1)
-# Raise error on <n-1 values
-$NSA directive server_name location && (echo "NOT OK" && exit 1)
-# Raise error on >n values
-$NSA directive server_name location --values example.com /static bla && (echo "NOT OK" && exit 1)
+$NSA -d server_name -f server_name=banaan.com |& grep example.com && (echo "NOT OK" && exit 1)
+# Multiple filters should show the most specific match
+$NSA -f location=/ -f server_name=example.com |& grep "/etc/nginx/servers/example.com.conf:8" || (echo "NOT OK" && exit 1)
 
 echo "All tests passed"

@@ -84,7 +84,7 @@ def get_lines_matching_filter(
     return values
 
 
-def get_directive_matches(
+def filter_config(
     root_config: RootNginxConfig,
     filters: CombinedFilters,
 ) -> List[NginxLineConfig]:
@@ -102,3 +102,12 @@ def get_directive_matches(
                     )
                     values.append(line_with_directive)
     return values
+
+
+def get_directive_matches(
+    lines: List[NginxLineConfig], directives: List[str]
+) -> List[NginxLineConfig]:
+    """
+    Find all lines that match one of the given directives
+    """
+    return [line for line in lines if line.directive in directives]
