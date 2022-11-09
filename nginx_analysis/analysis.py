@@ -13,12 +13,14 @@ def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLine
             for nested_file_config in nested_file_configs:
                 for nested_line_config in nested_file_config.parsed:
                     nested_line_config.parent = block_config
+                    block_config.children.append(nested_line_config)
 
 
 def set_parents_of_blocks(root_config: RootNginxConfig, line_config: NginxLineConfig):
     if line_config.block:
         for block_config in line_config.block:
             block_config.parent = line_config
+            line_config.children.append(block_config)
             block_config.file = line_config.file
             set_parents_of_blocks(root_config, block_config)
     set_parents_in_include(root_config, line_config)
@@ -91,17 +93,11 @@ def filter_config(
     """
     Find all values for the given directive name in the root config
     """
-    values = []
+    filtered_lines = []
     for file_config in root_config.config:
         for line_config in file_config.parsed:
-            lines_with_directive = get_lines_matching_filter(filters, line_config)
-            if lines_with_directive:
-                for line_with_directive in lines_with_directive:
-                    logger.debug(
-                        f"Found directive values on line {line_with_directive.line} in file {file_config.file}: {line_with_directive.args}"
-                    )
-                    values.append(line_with_directive)
-    return values
+            filtered_lines.extend(filters.match(line_config))
+    return filtered_lines
 
 
 def get_directive_matches(

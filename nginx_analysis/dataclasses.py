@@ -1,7 +1,8 @@
 import re
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Any, List, Optional, Tuple, TypeVar, Union
 
+from loguru import logger
 from pydantic import BaseModel
 
 T = TypeVar("T")
@@ -14,34 +15,90 @@ def compare_objects(this: T, that: T, fields: List[str]) -> bool:
     return True
 
 
+def filter_unique(line_configs: List["NginxLineConfig"]) -> List["NginxLineConfig"]:
+    """
+    Filter out lines that are already covered by a parent.
+    """
+    filtered_lines = []
+    for line_config in line_configs:
+        if not line_config in filtered_lines:
+            filtered_lines.append(line_config)
+    return filtered_lines
+
+
+def get_children_recursive(line_config: "NginxLineConfig") -> List["NginxLineConfig"]:
+    """
+    Get all children of a line recursively.
+    """
+    children = []
+    for child in line_config.children:
+        children.append(child)
+        children.extend(get_children_recursive(child))
+    return children
+
+
+def get_parents_recursive(line_config: "NginxLineConfig") -> List["NginxLineConfig"]:
+    """
+    Get all parents of a line recursively.
+    """
+    parents = []
+    current_line = line_config
+    while current_line.parent:
+        parents.append(current_line.parent)
+        current_line = current_line.parent
+
+    return parents
+
+
 class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None
 
-    def match(self, line: "NginxLineConfig") -> bool:
+    def match(self, line: "NginxLineConfig") -> List["NginxLineConfig"]:
         """
-        Check if the given line or any of the parent lines matches the filter.
-        For example, if the filter is for the directive "location" with value "/",
-        then the location itself would match but also any child lines under that location.
+        A block matches if the block itself matches or all filters apply
+        to any of the children beneath it matches.
         """
+        matching_lines = []
         if line.directive == self.directive:
             if self.value is None or self.value in line.args:
-                return True
+                # Direct line match, so all children match too
+                line.full_match = True
+                all_children = get_children_recursive(line)
+                for child in all_children:
+                    child.full_match = True
+                logger.debug(f"Full match: {line}")
 
-        if line.parent:
-            return self.match(line.parent)
-        return False
+                matching_lines.append(line)
+                matching_lines.extend(get_children_recursive(line))
+        else:
+            matching_children = []
+            for child in line.children:
+                matching_children.extend(self.match(child))
+            # If any child matches, the block matches
+            if matching_children:
+                matching_lines.append(line)
+                matching_lines.extend(matching_children)
+        unique_lines = filter_unique(matching_lines)
+        if not unique_lines:
+            line.definitely_no_match = True
+
+        return unique_lines
 
 
 class CombinedFilters(BaseModel):
     filters: List[Union[DirectiveFilter, "CombinedFilters"]] = []
-    operator: Callable[..., bool] = any
+
+    def operator(
+        self, matches: List[List["NginxLineConfig"]]
+    ) -> List["NginxLineConfig"]:
+        raise NotImplementedError("Must implement operator")
 
     class Config:
         arbitrary_types_allowed = True
 
-    def match(self, line: "NginxLineConfig") -> bool:
-        matches = []
+    def match(self, line: "NginxLineConfig") -> List["NginxLineConfig"]:
+        matches: List[List["NginxLineConfig"]] = []
         for f in self.filters:
             matches.append(f.match(line))
         return self.operator(matches)
@@ -60,11 +117,48 @@ CombinedFilters.update_forward_refs()
 
 
 class AnyFilter(CombinedFilters):
-    operator: Callable[[Iterable], bool] = any
+    def operator(
+        self, matches: List[List["NginxLineConfig"]]
+    ) -> List["NginxLineConfig"]:
+        # TODO: Have a better way of doing this
+        total_matches = []
+        for match in matches:
+            total_matches.extend(match)
+        return total_matches
 
 
 class AllFilter(CombinedFilters):
-    operator: Callable[[Iterable], bool] = all
+    def operator(
+        self, lists_of_matches: List[List["NginxLineConfig"]]
+    ) -> List["NginxLineConfig"]:
+        """
+        Given the following config:
+        server -> server_name=example.com
+        `-> location=/ -> proxy_pass=http://localhost:8080`
+        `-> something_else
+
+        And the following filter:
+        AllFilter(
+            DirectiveFilter("server_name", "example.com"),
+            DirectiveFilter("location", "/"),
+        )
+
+        The result should be that `server`, `server_name`, `location` and `proxy_pass` are marked as matches.
+        """
+        total_matches = []
+        for matches in lists_of_matches:
+            for l in matches:
+                if l.full_match:
+                    if all(
+                        [
+                            p.full_match or not p.definitely_no_match
+                            for p in get_parents_recursive(l)
+                        ]
+                    ):
+                        total_matches.append(l)
+                elif not l.definitely_no_match:
+                    total_matches.append(l)
+        return filter_unique(total_matches)
 
 
 class NginxLineConfig(BaseModel):
@@ -74,12 +168,15 @@ class NginxLineConfig(BaseModel):
     file: Optional[Path]  # Only filled in after parsing
     block: Optional[List["NginxLineConfig"]]
     parent: Optional["NginxLineConfig"]
+    children: List["NginxLineConfig"] = []
+    definitely_no_match = False
+    full_match = False
 
     @property
-    def parent_blocks(self) -> List[str]:
+    def lineage(self) -> List[str]:
         if not self.parent:
             return [self.directive]
-        return self.parent.parent_blocks + [self.directive]
+        return self.parent.lineage + [self.directive]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NginxLineConfig):
@@ -88,8 +185,12 @@ class NginxLineConfig(BaseModel):
         comparison_fields = ["line", "directive", "file", "args"]
         return compare_objects(self, other, comparison_fields)
 
+    # Used for set() operations
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def __str__(self) -> str:
-        return f"{self.file}:{self.line}"
+        return f"{self.file}:{self.line} -> {self.directive}"
 
 
 class NginxFileConfig(BaseModel):
