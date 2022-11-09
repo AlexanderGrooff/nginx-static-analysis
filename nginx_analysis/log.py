@@ -4,7 +4,7 @@ from typing import List
 from loguru import logger
 
 from nginx_analysis.analysis import filter_config
-from nginx_analysis.dataclasses import AnyFilter, DirectiveFilter, RootNginxConfig
+from nginx_analysis.dataclasses import DirectiveFilter, RootNginxConfig
 
 
 def get_all_nginx_logformats(root_config: RootNginxConfig) -> List[str]:
@@ -21,7 +21,7 @@ def get_all_nginx_logformats(root_config: RootNginxConfig) -> List[str]:
     )
     # TODO: Only match logformat for matching logfile
     log_format_lines = filter_config(
-        root_config, AnyFilter(filters=[DirectiveFilter(directive="log_format")])
+        root_config, [DirectiveFilter(directive="log_format")]
     )
     if not log_format_lines:
         return [default]

@@ -1,8 +1,7 @@
 import re
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Generator, List, Optional, Tuple, TypeVar
 
-from loguru import logger
 from pydantic import BaseModel
 
 T = TypeVar("T")
@@ -54,111 +53,21 @@ class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None
 
-    def match(self, line: "NginxLineConfig") -> List["NginxLineConfig"]:
+    def match(self, line: "NginxLineConfig") -> bool:
         """
         A block matches if the block itself matches or all filters apply
         to any of the children beneath it matches.
         """
-        matching_lines = []
         if line.directive == self.directive:
             if self.value is None or self.value in line.args:
-                # Direct line match, so all children match too
-                line.full_match = True
-                all_children = get_children_recursive(line)
-                for child in all_children:
-                    child.full_match = True
-                logger.debug(f"Full match: {line}")
+                return True
+        return False
 
-                matching_lines.append(line)
-                matching_lines.extend(get_children_recursive(line))
-        else:
-            matching_children = []
-            for child in line.children:
-                matching_children.extend(self.match(child))
-            # If any child matches, the block matches
-            if matching_children:
-                matching_lines.append(line)
-                matching_lines.extend(matching_children)
-        unique_lines = filter_unique(matching_lines)
-        if not unique_lines:
-            line.definitely_no_match = True
+    def __hash__(self) -> int:
+        return hash(str(self))
 
-        return unique_lines
-
-
-class CombinedFilters(BaseModel):
-    filters: List[Union[DirectiveFilter, "CombinedFilters"]] = []
-
-    def operator(
-        self, matches: List[List["NginxLineConfig"]]
-    ) -> List["NginxLineConfig"]:
-        raise NotImplementedError("Must implement operator")
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def match(self, line: "NginxLineConfig") -> List["NginxLineConfig"]:
-        matches: List[List["NginxLineConfig"]] = []
-        for f in self.filters:
-            matches.append(f.match(line))
-        return self.operator(matches)
-
-    def __add__(
-        self, other: Union[DirectiveFilter, "CombinedFilters"]
-    ) -> "CombinedFilters":
-        self.filters.append(other)
-        return self
-
-    def __iter__(self):
-        return self.filters
-
-
-CombinedFilters.update_forward_refs()
-
-
-class AnyFilter(CombinedFilters):
-    def operator(
-        self, matches: List[List["NginxLineConfig"]]
-    ) -> List["NginxLineConfig"]:
-        # TODO: Have a better way of doing this
-        total_matches = []
-        for match in matches:
-            total_matches.extend(match)
-        return total_matches
-
-
-class AllFilter(CombinedFilters):
-    def operator(
-        self, lists_of_matches: List[List["NginxLineConfig"]]
-    ) -> List["NginxLineConfig"]:
-        """
-        Given the following config:
-        server -> server_name=example.com
-        `-> location=/ -> proxy_pass=http://localhost:8080`
-        `-> something_else
-
-        And the following filter:
-        AllFilter(
-            DirectiveFilter("server_name", "example.com"),
-            DirectiveFilter("location", "/"),
-        )
-
-        The result should be that `server`, `server_name`, `location` and `proxy_pass` are marked as matches.
-        """
-        total_matches = []
-        for matches in lists_of_matches:
-            for l in matches:
-                if l.full_match:
-                    if all(
-                        [
-                            p.full_match or not p.definitely_no_match
-                            for p in get_parents_recursive(l)
-                        ]
-                    ):
-                        total_matches.append(l)
-                elif not l.definitely_no_match:
-                    total_matches.append(l)
-        return filter_unique(total_matches)
+    def __str__(self) -> str:
+        return f"{self.directive} -> {self.value}"
 
 
 class NginxLineConfig(BaseModel):
@@ -226,6 +135,14 @@ class RootNginxConfig(BaseModel):
     status: str
     errors: List[NginxErrorConfig]
     config: List[NginxFileConfig]
+
+    @property
+    def lines(self) -> Generator[NginxLineConfig, None, None]:
+        # After parsing, the root config contains a list of files
+        # with lines that are linked to each other. We loop over
+        # the lines in the first file, as this is the main config.
+        for line_config in self.config[0].parsed:
+            yield line_config
 
     def get_files(self, file_path_regex: str) -> List[NginxFileConfig]:
         matching_file_configs = []

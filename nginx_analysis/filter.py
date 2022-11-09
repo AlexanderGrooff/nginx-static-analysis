@@ -1,23 +1,19 @@
 from typing import List
 
-from nginx_analysis.dataclasses import AllFilter, CombinedFilters, DirectiveFilter
+from nginx_analysis.dataclasses import DirectiveFilter
 
 
-def args_to_filter(filter_args: List[str]) -> CombinedFilters:
+def args_to_filter(filter_args: List[str]) -> List[DirectiveFilter]:
     directives = [f.split("=")[0] for f in filter_args]
     values = ["".join(f.split("=")[1:]) for f in filter_args]
-    return AllFilter(
-        filters=[
-            DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)
-        ]
-    )
+    return [DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)]
 
 
-def logline_to_filter(logline: dict) -> CombinedFilters:
-    filters = AllFilter()
+def logline_to_filter(logline: dict) -> List[DirectiveFilter]:
+    filters: List[DirectiveFilter] = []
     if "server_name" in logline:
-        filters += DirectiveFilter(
-            directive="server_name", value=logline["server_name"]
+        filters.append(
+            DirectiveFilter(directive="server_name", value=logline["server_name"])
         )
     if "request" in logline:
         try:
@@ -25,6 +21,6 @@ def logline_to_filter(logline: dict) -> CombinedFilters:
         except IndexError:
             pass
         else:
-            filters += DirectiveFilter(directive="location", value=location)
+            filters.append(DirectiveFilter(directive="location", value=location))
 
     return filters

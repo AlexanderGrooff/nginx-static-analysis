@@ -8,7 +8,6 @@ from nginx_analysis.analysis import (
     get_unique_directives,
     parse_config,
 )
-from nginx_analysis.dataclasses import AnyFilter
 from nginx_analysis.filter import args_to_filter, logline_to_filter
 from nginx_analysis.input import get_args, get_loglines, setup_logger
 from nginx_analysis.log import parse_logline
@@ -32,12 +31,12 @@ def main():
             log_filter = logline_to_filter(parsed_line)
             logline_filters.append(log_filter)
         if logline_filters:
-            filters += AnyFilter(filters=logline_filters)
+            filters.extend(logline_filters)
 
     all_directives = get_unique_directives(root_config)
     logger.debug(f"Found directives in config: {all_directives}")
 
-    filtered_lines = filter_config(root_config, filters)
+    filtered_lines = filter_config(root_config.lines, filters)
     logger.debug(f"Found {len(filtered_lines)} lines matching filters")
     if search_directives:
         matching_lines = get_directive_matches(filtered_lines, search_directives)
