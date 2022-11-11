@@ -21,7 +21,7 @@ def get_all_nginx_logformats(root_config: RootNginxConfig) -> List[str]:
     )
     # TODO: Only match logformat for matching logfile
     log_format_lines = filter_config(
-        root_config, [DirectiveFilter(directive="log_format")]
+        root_config.lines, [DirectiveFilter(directive="log_format")]
     )
     if not log_format_lines:
         return [default]

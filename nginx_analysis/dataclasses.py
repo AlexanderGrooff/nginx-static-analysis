@@ -119,6 +119,13 @@ class NginxFileConfig(BaseModel):
     def __str__(self) -> str:
         return f"{self.file}"
 
+    @property
+    def lines(self) -> Generator[NginxLineConfig, None, None]:
+        for line in self.parsed:
+            yield line
+            for child in get_children_recursive(line):
+                yield child
+
 
 # Fixes the following error:
 # `pydantic.errors.ConfigError: field "block" not yet prepared so type is still a ForwardRef, you might need to call NginxLineConfig.update_forward_refs().`
@@ -141,7 +148,7 @@ class RootNginxConfig(BaseModel):
         # After parsing, the root config contains a list of files
         # with lines that are linked to each other. We loop over
         # the lines in the first file, as this is the main config.
-        for line_config in self.config[0].parsed:
+        for line_config in self.config[0].lines:
             yield line_config
 
     def get_files(self, file_path_regex: str) -> List[NginxFileConfig]:
