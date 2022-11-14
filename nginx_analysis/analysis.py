@@ -7,6 +7,7 @@ from nginx_analysis.dataclasses import (
     DirectiveFilter,
     NginxLineConfig,
     RootNginxConfig,
+    filter_unique,
     get_children_recursive,
 )
 
@@ -138,7 +139,7 @@ def filter_config(
         child_matches, _ = find_matches_in_children(line, filters)
         matching_lines.extend(child_matches)
 
-    return matching_lines
+    return filter_unique(matching_lines)
 
 
 def get_directive_matches(
