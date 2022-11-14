@@ -10,45 +10,55 @@ Largely powered by [Crossplane](https://github.com/nginxinc/crossplane).
 
 You can list any directive within your Nginx configuration. For example, show all `listen` directives:
 ```
-app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis directive listen
-+------------------------------------------------------+----------------------------------------+------------------+
-|                         File                         |                 Values                 |    Directives    |
-+------------------------------------------------------+----------------------------------------+------------------+
-|  /etc/nginx/sites/http.testalex.hypernode.io.conf:4  |     127.0.0.1:1337 default_server      | server -> listen |
-| /etc/nginx/sites/http.testalex.hypernode.io.conf:16  |          8888 default_server           | server -> listen |
-| /etc/nginx/sites/https.testalex.hypernode.io.conf:6  | 127.0.0.1:443 ssl http2 default_server | server -> listen |
-| /etc/nginx/sites/https.testalex.hypernode.io.conf:22 |     8443 ssl http2 default_server      | server -> listen |
-+------------------------------------------------------+----------------------------------------+------------------+
+app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis -d listen
++-------------------------------------------------+--------------------+-------------------------------------+
+|                       File                      |       Values       |              Directives             |
++-------------------------------------------------+--------------------+-------------------------------------+
+|      /etc/nginx/servers/example.com.conf:3      |         80         | http -> include -> server -> listen |
+|      /etc/nginx/servers/example.com.conf:4      |        443         | http -> include -> server -> listen |
+|      /etc/nginx/servers/example.com.conf:5      |        8080        | http -> include -> server -> listen |
+|      /etc/nginx/servers/example.com.conf:6      |        8888        | http -> include -> server -> listen |
+| /etc/nginx/servers/testalex.hypernode.io.conf:3 | 80 default_server  | http -> include -> server -> listen |
+| /etc/nginx/servers/testalex.hypernode.io.conf:4 | 443 default_server | http -> include -> server -> listen |
++-------------------------------------------------+--------------------+-------------------------------------+
 ```
 
-Filtering also works for values, like showing all `location` blocks with value `/`:
+Filtering also works for values, like showing all `location` blocks with value `/`.
+This shows you the tree leading up to the filtered values, and all children under the filter:
 ```
-app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis directive location --values /
-+----------------------------------------------------+--------+------------------------------------------+
-|                        File                        | Values |                Directives                |
-+----------------------------------------------------+--------+------------------------------------------+
-|            /etc/nginx/testsite.conf:18             |   /    |  http -> include -> server -> location   |
-| /etc/nginx/sites/http.testalex.hypernode.io.conf:8 |   /    |            server -> location            |
-|            /etc/nginx/magento2.conf:17             |   /    | server -> include -> include -> location |
-+----------------------------------------------------+--------+------------------------------------------+
+app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis -f location=/
++-------------------------------------------------+-----------------------+-----------------------------------------------------+
+|                       File                      |         Values        |                      Directives                     |
++-------------------------------------------------+-----------------------+-----------------------------------------------------+
+|             /etc/nginx/nginx.conf:10            |                       |                         http                        |
+|             /etc/nginx/nginx.conf:87            |  /etc/nginx/servers/* |                   http -> include                   |
+|      /etc/nginx/servers/example.com.conf:1      |                       |              http -> include -> server              |
+|      /etc/nginx/servers/example.com.conf:8      |           /           |        http -> include -> server -> location        |
+|      /etc/nginx/servers/example.com.conf:9      | http://localhost:8003 | http -> include -> server -> location -> proxy_pass |
+| /etc/nginx/servers/testalex.hypernode.io.conf:1 |                       |              http -> include -> server              |
+| /etc/nginx/servers/testalex.hypernode.io.conf:6 |           /           |        http -> include -> server -> location        |
+| /etc/nginx/servers/testalex.hypernode.io.conf:7 |          403          |   http -> include -> server -> location -> return   |
++-------------------------------------------------+-----------------------+-----------------------------------------------------+
 ```
 
-You can search for multiple directives, as long as you specify >=n-1 values to directives. F.e., find the `server_name`s and `location`s that match with `location=/static/`:
+If you only want to show the filtered values, or any children under the filtered values, simply specify that
+you want to show that directive:
 ```
-app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis directive location server_name --value /static/
-+------------------------------------------------------+-----------------------+------------------------------------------+
-|                         File                         |         Values        |                Directives                |
-+------------------------------------------------------+-----------------------+------------------------------------------+
-|             /etc/nginx/monitoring.conf:5             |       localhost       | http -> include -> server -> server_name |
-|              /etc/nginx/testsite.conf:5              |         magweb        | http -> include -> server -> server_name |
-| /etc/nginx/sites/https.testalex.hypernode.io.conf:21 | testalex.hypernode.io |          server -> server_name           |
-|             /etc/nginx/magento2.conf:23              |        /static/       | server -> include -> include -> location |
-+------------------------------------------------------+-----------------------+------------------------------------------+
+app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis -f location=/ -d return -d location
++--------------------------------------------------+---------+-------------------------------------------------+
+|                       File                       |  Values |                    Directives                   |
++--------------------------------------------------+---------+-------------------------------------------------+
+| /etc/nginx/servers/testalex.hypernode.io.conf:6  |    /    |      http -> include -> server -> location      |
+| /etc/nginx/servers/testalex.hypernode.io.conf:7  |   403   | http -> include -> server -> location -> return |
+| /etc/nginx/servers/testalex.hypernode.io.conf:10 | /banaan |      http -> include -> server -> location      |
+| /etc/nginx/servers/testalex.hypernode.io.conf:11 |   404   | http -> include -> server -> location -> return |
+|      /etc/nginx/servers/example.com.conf:8       |    /    |      http -> include -> server -> location      |
++--------------------------------------------------+---------+-------------------------------------------------+
 ```
 
 By default it parses `/etc/nginx/nginx.conf` and all includes, but you can specify the starting file:
 ```
-app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis -f /some/other/nginx.conf directive location
+app@wifbtb-testalex-magweb-cmbl:~$ nginx-static-analysis -f /some/other/nginx.conf -d location
 ...
 ```
 

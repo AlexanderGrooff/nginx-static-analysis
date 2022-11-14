@@ -1,37 +1,19 @@
-from typing import List, Optional
+from typing import List
 
-from nginx_analysis.dataclasses import (
-    AllFilter,
-    AnyFilter,
-    CombinedFilters,
-    DirectiveFilter,
-)
+from nginx_analysis.dataclasses import DirectiveFilter
 
 
-def args_to_filter(
-    directives: List[str], values: List[Optional[str]]
-) -> CombinedFilters:
-    if len(values) > len(directives):
-        raise RuntimeError(f"Found more values than directives")
-
-    if len(directives) > len(values):
-        if len(directives) == len(values) + 1:
-            values.append(None)
-        else:
-            raise RuntimeError(f"Found more than one directive without value")
-
-    return AnyFilter(
-        filters=[
-            DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)
-        ]
-    )
+def args_to_filter(filter_args: List[str]) -> List[DirectiveFilter]:
+    directives = [f.split("=")[0] for f in filter_args]
+    values = ["".join(f.split("=")[1:]) for f in filter_args]
+    return [DirectiveFilter(directive=d, value=v) for d, v in zip(directives, values)]
 
 
-def logline_to_filter(logline: dict) -> CombinedFilters:
-    filters = AllFilter()
+def logline_to_filter(logline: dict) -> List[DirectiveFilter]:
+    filters: List[DirectiveFilter] = []
     if "server_name" in logline:
-        filters += DirectiveFilter(
-            directive="server_name", value=logline["server_name"]
+        filters.append(
+            DirectiveFilter(directive="server_name", value=logline["server_name"])
         )
     if "request" in logline:
         try:
@@ -39,6 +21,6 @@ def logline_to_filter(logline: dict) -> CombinedFilters:
         except IndexError:
             pass
         else:
-            filters += DirectiveFilter(directive="location", value=location)
+            filters.append(DirectiveFilter(directive="location", value=location))
 
     return filters

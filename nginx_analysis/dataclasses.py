@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Generator, List, Optional, Tuple, TypeVar
 
 from pydantic import BaseModel
 
@@ -14,50 +14,60 @@ def compare_objects(this: T, that: T, fields: List[str]) -> bool:
     return True
 
 
+def filter_unique(line_configs: List["NginxLineConfig"]) -> List["NginxLineConfig"]:
+    """
+    Filter out lines that are already covered by a parent.
+    """
+    filtered_lines = []
+    for line_config in line_configs:
+        if not line_config in filtered_lines:
+            filtered_lines.append(line_config)
+    return filtered_lines
+
+
+def get_children_recursive(line_config: "NginxLineConfig") -> List["NginxLineConfig"]:
+    """
+    Get all children of a line recursively.
+    """
+    children = []
+    for child in line_config.children:
+        children.append(child)
+        children.extend(get_children_recursive(child))
+    return children
+
+
+def get_parents_recursive(line_config: "NginxLineConfig") -> List["NginxLineConfig"]:
+    """
+    Get all parents of a line recursively.
+    """
+    parents = []
+    current_line = line_config
+    while current_line.parent:
+        parents.append(current_line.parent)
+        current_line = current_line.parent
+
+    return parents
+
+
 class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None
 
     def match(self, line: "NginxLineConfig") -> bool:
-        if line.directive != self.directive:
-            return False
-        if self.value is None:
-            return True
-        return self.value in line.args
+        """
+        A block matches if the block itself matches or all filters apply
+        to any of the children beneath it matches.
+        """
+        if line.directive == self.directive:
+            if self.value is None or self.value in line.args:
+                return True
+        return False
 
+    def __hash__(self) -> int:
+        return hash(str(self))
 
-class CombinedFilters(BaseModel):
-    filters: List[Union[DirectiveFilter, "CombinedFilters"]] = []
-    operator: Callable[..., bool] = any
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def match(self, line: "NginxLineConfig") -> bool:
-        matches = []
-        for f in self.filters:
-            matches.append(f.match(line))
-        return self.operator(matches)
-
-    def __add__(
-        self, other: Union[DirectiveFilter, "CombinedFilters"]
-    ) -> "CombinedFilters":
-        self.filters.append(other)
-        return self
-
-    def __iter__(self):
-        return self.filters
-
-
-CombinedFilters.update_forward_refs()
-
-
-class AnyFilter(CombinedFilters):
-    operator: Callable[[Iterable], bool] = any
-
-
-class AllFilter(CombinedFilters):
-    operator: Callable[[Iterable], bool] = all
+    def __str__(self) -> str:
+        return f"{self.directive} -> {self.value}"
 
 
 class NginxLineConfig(BaseModel):
@@ -67,12 +77,15 @@ class NginxLineConfig(BaseModel):
     file: Optional[Path]  # Only filled in after parsing
     block: Optional[List["NginxLineConfig"]]
     parent: Optional["NginxLineConfig"]
+    children: List["NginxLineConfig"] = []
+    definitely_no_match = False
+    full_match = False
 
     @property
-    def parent_blocks(self) -> List[str]:
+    def lineage(self) -> List[str]:
         if not self.parent:
             return [self.directive]
-        return self.parent.parent_blocks + [self.directive]
+        return self.parent.lineage + [self.directive]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NginxLineConfig):
@@ -81,8 +94,12 @@ class NginxLineConfig(BaseModel):
         comparison_fields = ["line", "directive", "file", "args"]
         return compare_objects(self, other, comparison_fields)
 
+    # Used for set() operations
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def __str__(self) -> str:
-        return f"{self.file}:{self.line}"
+        return f"{self.file}:{self.line} -> {self.directive}"
 
 
 class NginxFileConfig(BaseModel):
@@ -102,6 +119,13 @@ class NginxFileConfig(BaseModel):
     def __str__(self) -> str:
         return f"{self.file}"
 
+    @property
+    def lines(self) -> Generator[NginxLineConfig, None, None]:
+        for line in self.parsed:
+            yield line
+            for child in get_children_recursive(line):
+                yield child
+
 
 # Fixes the following error:
 # `pydantic.errors.ConfigError: field "block" not yet prepared so type is still a ForwardRef, you might need to call NginxLineConfig.update_forward_refs().`
@@ -118,6 +142,14 @@ class RootNginxConfig(BaseModel):
     status: str
     errors: List[NginxErrorConfig]
     config: List[NginxFileConfig]
+
+    @property
+    def lines(self) -> Generator[NginxLineConfig, None, None]:
+        # After parsing, the root config contains a list of files
+        # with lines that are linked to each other. We loop over
+        # the lines in the first file, as this is the main config.
+        for line_config in self.config[0].lines:
+            yield line_config
 
     def get_files(self, file_path_regex: str) -> List[NginxFileConfig]:
         matching_file_configs = []

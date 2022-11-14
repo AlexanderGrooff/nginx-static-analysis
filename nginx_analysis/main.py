@@ -3,16 +3,15 @@
 from loguru import logger
 
 from nginx_analysis.analysis import (
+    filter_config,
     get_directive_matches,
     get_unique_directives,
     parse_config,
 )
-from nginx_analysis.dataclasses import AllFilter, AnyFilter
 from nginx_analysis.filter import args_to_filter, logline_to_filter
 from nginx_analysis.input import get_args, get_loglines, setup_logger
 from nginx_analysis.log import parse_logline
 from nginx_analysis.output import render_directive_matches
-from nginx_analysis.url import get_server_configs_for_url
 
 
 def main():
@@ -20,7 +19,8 @@ def main():
     setup_logger(args.verbose)
 
     root_config = parse_config(args.file)
-    filters = AllFilter()
+    search_directives = args.directives
+    filters = args_to_filter(args.filters)
     if "logs" in args:
         # We combine all logline filters into an AnyFilter
         # to match directives that match any of the loglines
@@ -31,28 +31,23 @@ def main():
             log_filter = logline_to_filter(parsed_line)
             logline_filters.append(log_filter)
         if logline_filters:
-            filters += AnyFilter(filters=logline_filters)
+            filters.extend(logline_filters)
 
-    if "directives" in args:
-        directives = get_unique_directives(root_config)
-        logger.debug(f"Found directives in config: {directives}")
-        arg_filters = args_to_filter(args.directives, args.values)
-        filters += arg_filters
+    all_directives = get_unique_directives(root_config)
+    logger.debug(f"Found directives in config: {all_directives}")
 
-        directive_matches = get_directive_matches(root_config, filters)
-        if directive_matches:
-            logger.debug(f"Found the following values:")
-            render_directive_matches(directive_matches)
-        else:
-            logger.info(f"Found no matches")
+    filtered_lines = filter_config(root_config.lines, filters)
+    logger.debug(f"Found {len(filtered_lines)} lines matching filters")
+    if search_directives:
+        matching_lines = get_directive_matches(filtered_lines, search_directives)
+    else:
+        matching_lines = filtered_lines
 
-    if "url" in args:
-        server_configs = get_server_configs_for_url(args.url, root_config)
-        if server_configs:
-            for s in server_configs:
-                logger.info(f"{s.file}:{s.line}")
-        else:
-            logger.info(f"Url {args.url} doesn't match any configs")
+    if matching_lines:
+        logger.debug(f"Found the following values:")
+        render_directive_matches(matching_lines)
+    else:
+        logger.info(f"Found no matches")
 
 
 if __name__ == "__main__":

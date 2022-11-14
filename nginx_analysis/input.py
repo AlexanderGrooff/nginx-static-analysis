@@ -15,29 +15,32 @@ def setup_logger(verbose: bool):
 def get_args(args: Optional[List[str]] = None):
     parser = ArgumentParser(prog="nginx-static-analysis")
     parser.add_argument(
-        "-f", "--file", help="Root nginx file", default="/etc/nginx/nginx.conf"
+        "--file", help="Root nginx file", default="/etc/nginx/nginx.conf"
     )
     parser.add_argument(
         "-v", "--verbose", help="Set verbosity level to debug", action="store_true"
     )
-    subparsers = parser.add_subparsers(help="Commands available to run", required=True)
-
-    directive_parser = subparsers.add_parser(
-        "directive", help="Parse directive from configs", aliases=["d"]
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        help="Only show values. Useful for scripting",
+        action="store_true",
     )
-    directive_parser.add_argument(
-        "directives", nargs="+", help="Specify directives to look for"
+    parser.add_argument(
+        "-f",
+        "--filter",
+        dest="filters",
+        help="Filter values. Takes input as x=y, where x is the directive and y is the target value",
+        action="append",
+        default=[],
     )
-    directive_parser.add_argument(
-        "--values", nargs="*", help="Specify values to look for", default=[]
-    )
-
-    url_parser = subparsers.add_parser(
-        "url", help="Find all configs that are hit when making a request"
-    )
-    url_parser.add_argument("url", help="Url to simulate request for")
-    url_parser.add_argument(
-        "-H", "--headers", help="Header in the request. Can be used multiple times"
+    parser.add_argument(
+        "-d",
+        "--directive",
+        dest="directives",
+        help="Filter directive. If none given, show all found directives",
+        action="append",
+        default=[],
     )
 
     # Stdin logs
