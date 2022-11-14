@@ -12,10 +12,17 @@ from nginx_analysis.dataclasses import (
 )
 
 
+def nginx_to_regex(nginx: str) -> str:
+    """
+    Convert a nginx-style regex to a python regex
+    """
+    return nginx.replace("*", ".*")
+
+
 def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
     if block_config.directive == "include":
         for file_path in block_config.args:
-            nested_file_configs = root_config.get_files(file_path)
+            nested_file_configs = root_config.get_files(nginx_to_regex(file_path))
             for nested_file_config in nested_file_configs:
                 for nested_line_config in nested_file_config.parsed:
                     nested_line_config.parent = block_config
