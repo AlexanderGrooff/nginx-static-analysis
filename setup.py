@@ -34,6 +34,7 @@ setup(
             "nginx-static-analysis = nginx_analysis.main:main",
         ],
     },
+    python_requires=">=3.7",
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
