@@ -98,7 +98,8 @@ def is_direct_match(
 def find_matches_in_children(
     line: NginxLineConfig, filters: List[DirectiveFilter]
 ) -> Tuple[List[NginxLineConfig], List[DirectiveFilter]]:
-    if matched_filter := is_direct_match(line, filters):
+    matched_filter = is_direct_match(line, filters)
+    if matched_filter:
         all_matched_filters = set([matched_filter])
         # Search for remaining filters in children, as the parent
         # might still be looking for other filters
