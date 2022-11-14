@@ -16,6 +16,8 @@ NSA=/usr/local/bin/nginx-static-analysis
 # Ensure the basic functionality works
 $NSA --help || (echo "NOT OK" && exit 1)
 $NSA -d server_name || (echo "NOT OK" && exit 1)
+# Check if only unique lines are returned
+test $($NSA -d server_name |& grep example.com | wc -l) = 1 || (echo "NOT OK" && exit 1)
 # Garbage in --> no matches
 $NSA -d blabla |& grep "Found no matches" || (echo "NOT OK" && exit 1)
 # Value should show the value in table format
