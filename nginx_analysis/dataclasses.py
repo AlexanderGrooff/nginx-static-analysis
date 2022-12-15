@@ -87,6 +87,11 @@ class NginxLineConfig(BaseModel):
             return [self.directive]
         return self.parent.lineage + [self.directive]
 
+    @property
+    def neighbours(self) -> List["NginxLineConfig"]:
+        parent_children = self.parent.children if self.parent else []
+        return [c for c in parent_children if c != self]
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NginxLineConfig):
             return False

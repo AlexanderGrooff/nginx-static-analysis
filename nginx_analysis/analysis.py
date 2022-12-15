@@ -116,7 +116,9 @@ def find_matches_in_children(
                 child, remaining_filters
             )
             all_matched_filters.update(child_matched_filters)
-        return [line, *get_children_recursive(line)], list(all_matched_filters)
+        return [line, *line.neighbours, *get_children_recursive(line)], list(
+            all_matched_filters
+        )
 
     # All filters must match at least one child
     matched_filters = set()
