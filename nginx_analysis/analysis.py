@@ -73,13 +73,12 @@ def get_unique_directives(root_config: RootNginxConfig) -> List[str]:
     Find all unique directives in the given root config
     """
     unique_directives: Set[str] = set()
-    for file_config in root_config.config:
-        for line_config in file_config.parsed:
-            directives = get_unique_directives_in_line(line_config)
-            logger.debug(
-                f"Found directives on line {line_config.line} in file {file_config.file}: {directives}"
-            )
-            unique_directives = unique_directives.union(directives)
+    for line_config in root_config.lines:
+        directives = get_unique_directives_in_line(line_config)
+        logger.debug(
+            f"Found directives on line {line_config.line} in file {line_config.file}: {directives}"
+        )
+        unique_directives = unique_directives.union(directives)
     return list(unique_directives)
 
 
@@ -168,7 +167,7 @@ def filter_config(
 
 
 def get_directive_matches(
-    lines: List[NginxLineConfig], directives: List[str]
+    lines: Iterator[NginxLineConfig], directives: List[str]
 ) -> List[NginxLineConfig]:
     """
     Find all lines that match one of the given directives

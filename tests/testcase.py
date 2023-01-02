@@ -45,7 +45,6 @@ class TestCase(BaseTestCase):
 
                 with open(path) as f:
                     with open(tempfile_path, "w") as g:
-                        print(f"Copy {path} to {tempfile_path} from relpath {rel_path}")
                         contents = f.read()
                         contents = contents.replace("/etc/nginx", tmpdir)
                         g.write(contents)
