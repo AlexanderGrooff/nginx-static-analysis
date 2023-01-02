@@ -19,6 +19,10 @@ jobs:
       - name: Run general testsuite
         run: ./runtests.sh
         shell: bash
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
   linter:
     runs-on: ubuntu-latest
     steps:
