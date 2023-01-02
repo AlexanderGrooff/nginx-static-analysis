@@ -19,12 +19,12 @@ class TestParseConfig(TestCase):
         self.assertEqual(len(http_lines), 1)
         self.assertIsNone(http_lines[0].parent)
 
-    def test_include_parent_is_http(self):
+    def test_include_parent_is_set(self):
         root_config = self.get_example_root_conf()
         include_lines = get_directive_matches(root_config.lines, ["include"])
         self.assertGreater(len(include_lines), 0)
         for include_line in include_lines:
-            self.assertEqual(include_line.parent.directive, "http")
+            self.assertIsNotNone(include_line.parent.directive)
 
     def test_include_has_no_block(self):
         root_config = self.get_example_root_conf()

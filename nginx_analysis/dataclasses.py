@@ -103,7 +103,7 @@ class NginxLineConfig(BaseModel):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"{self.file}:{self.line} -> {self.directive}"
 
 
@@ -121,7 +121,7 @@ class NginxFileConfig(BaseModel):
         comparison_fields = ["file", "status", "errors", "parsed"]
         return compare_objects(self, other, comparison_fields)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"{self.file}"
 
     @property
@@ -183,3 +183,6 @@ class RootNginxConfig(BaseModel):
 
         comparison_fields = ["status", "errors", "config"]
         return compare_objects(self, other, comparison_fields)
+
+    def __repr__(self) -> str:
+        return f"{self.status} {self.root_file}"

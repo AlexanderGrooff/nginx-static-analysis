@@ -14,9 +14,10 @@ from nginx_analysis.dataclasses import (
 
 def nginx_to_regex(nginx: str) -> str:
     """
-    Convert a nginx-style regex to a python regex
+    Convert a nginx-style regex to a python regex.
+    Wildcard files are converted to regexes that match any file in the directory.
     """
-    return nginx.replace("*", ".*")
+    return nginx.replace("*", r"[^/]*")
 
 
 def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
@@ -27,6 +28,7 @@ def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLine
                 for nested_line_config in nested_file_config.parsed:
                     nested_line_config.parent = block_config
                     block_config.children.append(nested_line_config)
+                    set_parents_in_include(root_config, nested_line_config)
 
 
 def set_parents_of_blocks(root_config: RootNginxConfig, line_config: NginxLineConfig):
