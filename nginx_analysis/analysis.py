@@ -92,12 +92,15 @@ def get_line_at_linenr(
     return None
 
 
-def is_direct_match(
+def is_partial_direct_match(
     line: NginxLineConfig, filters: List[DirectiveFilter]
 ) -> Optional[DirectiveFilter]:
+    """
+    Check if the line matches any of the filters. If it does, return the
+    filter. If it doesn't, return None."""
     for dfilter in filters:
         if dfilter.match(line):
-            logger.debug(f"Direct match: {line}")
+            logger.debug(f"Direct match on filter {dfilter}: {line}")
             return dfilter
     return None
 
@@ -105,8 +108,20 @@ def is_direct_match(
 def find_matches_in_children(
     line: NginxLineConfig, filters: List[DirectiveFilter]
 ) -> Tuple[List[NginxLineConfig], List[DirectiveFilter]]:
-    matched_filter = is_direct_match(line, filters)
+    """
+    Check if the line matches filters. If it matches, return the line,
+    the line's neighbours and all children. If it doesn't match, check
+    if any of the children match the filters. If they do, return all
+    descendants of the line that match the filters, including the current
+    line.
+    We also return a list of filters that matched, so we can check if
+    all filters were matched eventually.
+    If there are no matches, return an empty list for both the matching
+    lines and the matched filters.
+    """
+    matched_filter = is_partial_direct_match(line, filters)
     if matched_filter:
+        logger.debug(f"Found match in children: {line}")
         all_matched_filters = set([matched_filter])
         # Search for remaining filters in children, as the parent
         # might still be looking for other filters
@@ -116,7 +131,9 @@ def find_matches_in_children(
                 child, remaining_filters
             )
             all_matched_filters.update(child_matched_filters)
-        return [line, *get_children_recursive(line)], list(all_matched_filters)
+        return [line, *line.neighbours, *get_children_recursive(line)], list(
+            all_matched_filters
+        )
 
     # All filters must match at least one child
     matched_filters = set()
