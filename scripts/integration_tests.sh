@@ -27,8 +27,9 @@ $NSA -d server_name -f server_name=banaan.com |& grep example.com && (echo "NOT 
 # Multiple filters should show the most specific match
 $NSA -f location=/ -f server_name=example.com |& grep "/etc/nginx/servers/example.com.conf:8" || (echo "NOT OK" && exit 1)
 # Show directives next to the direct match
-$NSA -f server_name=example.com |& grep "listen" | grep "default_server" || (echo "NOT OK" && exit 1)
+$NSA -f server_name=example.com |& grep "listen" | grep -v "default_server" || (echo "NOT OK" && exit 1)
+$NSA -f server_name=testalex.hypernode.io |& grep "listen" | grep "default_server" || (echo "NOT OK" && exit 1)
 # Don't show nested children of neighbours of direct match
-$NSA -f server_name=testalex.hypernode.io -f location=/ |& grep "/banaan" && (echo "NOT OK" && exit 1)
+$NSA -f server_name=testalex.hypernode.io -f location=/ |& grep "404" && (echo "NOT OK" && exit 1)
 
 echo "All tests passed"
