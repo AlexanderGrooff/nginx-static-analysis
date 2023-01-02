@@ -5,3 +5,4 @@ docker-compose
 pre-commit
 
 pytest
+coverage

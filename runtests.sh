@@ -20,5 +20,7 @@ if [[ ! $($NGINX_EXEC command -v pytest) ]]; then
     $NGINX_EXEC python3 -m pip install pytest
 fi
 
-$NGINX_EXEC python3 -m pytest
+$NGINX_EXEC coverage run -m pytest
+$NGINX_EXEC coverage report
+$NGINX_EXEC coverage xml -o coverage.xml
 $NGINX_EXEC ./scripts/integration_tests.sh
