@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from nginx_analysis.analysis import filter_config
 from nginx_analysis.dataclasses import DirectiveFilter, NginxLineConfig
 from tests.testcase import TestCase
@@ -9,10 +7,10 @@ class TestDirectiveIntegration(TestCase):
     maxDiff = None
 
     def test_one_user_is_parsed(self):
-        expected_line = NginxLineConfig(
-            line=1, file="/etc/nginx/nginx.conf", directive="user", args=["app"]
-        )
         root_config = self.get_example_root_conf()
+        expected_line = NginxLineConfig(
+            line=1, file=root_config.root_file, directive="user", args=["app"]
+        )
         user_filters = [DirectiveFilter(directive="user")]
         lines = filter_config(root_config.lines, user_filters)
         self.assertEqual(lines[0], expected_line)
@@ -24,13 +22,13 @@ class TestDirectiveIntegration(TestCase):
         expected_lines = [
             NginxLineConfig(
                 line=2,
-                file=Path("/etc/nginx/servers/example.com.conf"),
+                file=root_config.root_dir / "servers/example.com.conf",
                 directive="server_name",
                 args=["example.com", "www.example.com"],
             ),
             NginxLineConfig(
                 line=2,
-                file=Path("/etc/nginx/servers/testalex.hypernode.io.conf"),
+                file=root_config.root_dir / "servers/testalex.hypernode.io.conf",
                 directive="server_name",
                 args=["testalex.hypernode.io"],
             ),
@@ -47,7 +45,7 @@ class TestDirectiveIntegration(TestCase):
         expected_lines = [
             NginxLineConfig(
                 line=2,
-                file=Path("/etc/nginx/servers/example.com.conf"),
+                file=root_config.root_dir / "servers/example.com.conf",
                 directive="server_name",
                 args=["example.com", "www.example.com"],
             ),

@@ -149,6 +149,14 @@ class RootNginxConfig(BaseModel):
     config: List[NginxFileConfig]
 
     @property
+    def root_file(self) -> Path:
+        return self.config[0].file
+
+    @property
+    def root_dir(self) -> Path:
+        return self.root_file.absolute().parent
+
+    @property
     def lines(self) -> Generator[NginxLineConfig, None, None]:
         # After parsing, the root config contains a list of files
         # with lines that are linked to each other. We loop over
