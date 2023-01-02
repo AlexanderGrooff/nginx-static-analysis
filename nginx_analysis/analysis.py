@@ -160,8 +160,10 @@ def filter_config(
     """
     matching_lines = []
     for line in lines:
-        child_matches, _ = find_matches_in_children(line, filters)
-        matching_lines.extend(child_matches)
+        child_matches, matched_filters = find_matches_in_children(line, filters)
+        if len(matched_filters) == len(filters):
+            logger.debug(f"Matched all ({len(matched_filters)}) filters: {line}")
+            matching_lines.extend(child_matches)
 
     return filter_unique(matching_lines)
 
