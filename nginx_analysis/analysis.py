@@ -120,18 +120,28 @@ def find_matches_in_children(
     If there are no matches, return an empty list for both the matching
     lines and the matched filters.
     """
+    logger.debug(f"Checking if line {line} matches filters: {filters}")
     matched_filter = is_partial_direct_match(line, filters)
     if matched_filter:
         logger.debug(f"Found match in children: {line}")
         all_matched_filters = set([matched_filter])
         # Search for remaining filters in children, as the parent
         # might still be looking for other filters
-        remaining_filters = [f for f in filters if f != matched_filter]
         for child in line.children:
-            _, child_matched_filters = find_matches_in_children(
-                child, remaining_filters
-            )
-            all_matched_filters.update(child_matched_filters)
+            remaining_filters = [f for f in filters if f not in all_matched_filters]
+            if remaining_filters:
+                logger.debug(
+                    f"Looking for remaining filters in child {child}: {remaining_filters}"
+                )
+                _, child_matched_filters = find_matches_in_children(
+                    child, remaining_filters
+                )
+                all_matched_filters.update(child_matched_filters)
+            else:
+                logger.debug(
+                    f"Found all filters in children of line {line}. We should stop!"
+                )
+                break
         return [line, *line.neighbours, *get_children_recursive(line)], list(
             all_matched_filters
         )
@@ -140,10 +150,19 @@ def find_matches_in_children(
     matched_filters = set()
     matches = [line]
     for child in line.children:
-        child_matches, child_matched_filters = find_matches_in_children(child, filters)
-        if child_matches:
-            matches.extend(child_matches)
-            matched_filters.update(child_matched_filters)
+        remaining_filters = [f for f in filters if f not in matched_filters]
+        if remaining_filters:
+            child_matches, child_matched_filters = find_matches_in_children(
+                child, remaining_filters
+            )
+            if child_matches:
+                matches.extend(child_matches)
+                matched_filters.update(child_matched_filters)
+        else:
+            logger.debug(
+                f"Found all filters in children of line {line}. We should stop!"
+            )
+            break
 
     if len(matched_filters) == len(filters):
         logger.debug(

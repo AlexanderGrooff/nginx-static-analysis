@@ -29,7 +29,11 @@ $NSA -f location=/ -f server_name=example.com |& grep "/etc/nginx/servers/exampl
 # Show directives next to the direct match
 $NSA -f server_name=example.com |& grep "listen" | grep -v "default_server" || (echo "NOT OK" && exit 1)
 $NSA -f server_name=testalex.hypernode.io |& grep "listen" | grep "default_server" || (echo "NOT OK" && exit 1)
-# Don't show nested children of neighbours of direct match
-$NSA -f server_name=testalex.hypernode.io -f location=/ |& grep "404" && (echo "NOT OK" && exit 1)
+# Don't show nested children of parent neighbours of direct match
+$NSA -f server_name=testalex.hypernode.io |& grep "/etc/nginx/servers/example.com.conf" && (echo "NOT OK" && exit 1)
+$NSA -f server_name=example.com |& grep "/etc/nginx/servers/testalex.hypernode.io.conf" && (echo "NOT OK" && exit 1)
+# Show nested includes
+$NSA -f server_name=testalex.hypernode.io |& grep "/nested" && (echo "NOT OK" && exit 1)
+$NSA -f server_name=example.com |& grep "/nested" || (echo "NOT OK" && exit 1)
 
 echo "All tests passed"

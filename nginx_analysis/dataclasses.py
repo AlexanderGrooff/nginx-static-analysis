@@ -66,8 +66,11 @@ class DirectiveFilter(BaseModel):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"{self.directive} -> {self.value}"
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
 
 class NginxLineConfig(BaseModel):
@@ -106,6 +109,9 @@ class NginxLineConfig(BaseModel):
     def __repr__(self) -> str:
         return f"{self.file}:{self.line} -> {self.directive}"
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class NginxFileConfig(BaseModel):
     file: Path
@@ -123,6 +129,9 @@ class NginxFileConfig(BaseModel):
 
     def __repr__(self) -> str:
         return f"{self.file}"
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     @property
     def lines(self) -> Generator[NginxLineConfig, None, None]:
@@ -186,3 +195,6 @@ class RootNginxConfig(BaseModel):
 
     def __repr__(self) -> str:
         return f"{self.status} {self.root_file}"
+
+    def __str__(self) -> str:
+        return self.__repr__()
