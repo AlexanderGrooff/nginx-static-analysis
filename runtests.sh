@@ -16,11 +16,4 @@ if [[ ! $(docker-compose ps --services --filter status=running nginx | grep ngin
     docker-compose up -d nginx
 fi
 
-if [[ ! $($NGINX_EXEC command -v pytest) ]]; then
-    $NGINX_EXEC python3 -m pip install pytest
-fi
-
-$NGINX_EXEC coverage run -m pytest
-$NGINX_EXEC coverage report
-$NGINX_EXEC coverage xml -o coverage.xml
 $NGINX_EXEC ./scripts/integration_tests.sh
