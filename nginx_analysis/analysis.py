@@ -9,6 +9,7 @@ from nginx_analysis.dataclasses import (
     RootNginxConfig,
     filter_unique,
     get_children_recursive,
+    get_parents_recursive,
 )
 
 
@@ -106,20 +107,21 @@ def is_partial_direct_match(
     return None
 
 
-def find_matches_in_children(
+def get_matching_lines_in_children(
     line: NginxLineConfig, filters: List[DirectiveFilter]
 ) -> Tuple[List[NginxLineConfig], List[DirectiveFilter]]:
     """
-    Check if the line matches filters. If it matches, return the line,
-    the line's neighbours and all children. If it doesn't match, check
-    if any of the children match the filters. If they do, return all
-    descendants of the line that match the filters, including the current
-    line.
+    Check if the line matches filters. If it matches, return the line.
+    If it doesn't match, check if any of the children match the filters.
     We also return a list of filters that matched, so we can check if
     all filters were matched eventually.
     If there are no matches, return an empty list for both the matching
     lines and the matched filters.
     """
+    if not filters:
+        # No filters, meaning that the line matches directly
+        return [line], []
+
     logger.debug(f"Checking if line {line} matches filters: {filters}")
     matched_filter = is_partial_direct_match(line, filters)
     if matched_filter:
@@ -133,7 +135,7 @@ def find_matches_in_children(
                 logger.debug(
                     f"Looking for remaining filters in child {child}: {remaining_filters}"
                 )
-                _, child_matched_filters = find_matches_in_children(
+                _, child_matched_filters = get_matching_lines_in_children(
                     child, remaining_filters
                 )
                 all_matched_filters.update(child_matched_filters)
@@ -142,17 +144,15 @@ def find_matches_in_children(
                     f"Found all filters in children of line {line}. We should stop!"
                 )
                 break
-        return [line, *line.neighbours, *get_children_recursive(line)], list(
-            all_matched_filters
-        )
+        return [line], list(all_matched_filters)
 
     # All filters must match at least one child
     matched_filters = set()
-    matches = [line]
+    matches = []
     for child in line.children:
         remaining_filters = [f for f in filters if f not in matched_filters]
         if remaining_filters:
-            child_matches, child_matched_filters = find_matches_in_children(
+            child_matches, child_matched_filters = get_matching_lines_in_children(
                 child, remaining_filters
             )
             if child_matches:
@@ -172,6 +172,25 @@ def find_matches_in_children(
     return [], []
 
 
+def expand_upon_direct_match(
+    match: NginxLineConfig, matched_filters: List[DirectiveFilter]
+) -> List[NginxLineConfig]:
+    """
+    Expand upon matching lines by recursively looking through
+    parents and neighbours. However, we don't want to include any
+    lines that have the same directive as in the filters.
+    F.e., if the filter looks for location=/banaan, we don't want
+    to include other recursive location lines.
+    """
+    matching_lines = []
+    for neighbour in match.neighbours:
+        matching_lines.append(neighbour)
+        matching_lines.extend(get_children_recursive(neighbour))
+    parents = get_parents_recursive(match)
+    matching_lines.extend(parents)
+    return matching_lines
+
+
 def filter_config(
     lines: Iterator[NginxLineConfig],
     filters: List[DirectiveFilter],
@@ -181,10 +200,10 @@ def filter_config(
     """
     matching_lines = []
     for line in lines:
-        child_matches, matched_filters = find_matches_in_children(line, filters)
-        if len(matched_filters) == len(filters):
-            logger.debug(f"Matched all ({len(matched_filters)}) filters: {line}")
-            matching_lines.extend(child_matches)
+        child_matches, _ = get_matching_lines_in_children(line, filters)
+        matching_lines.extend(child_matches)
+        for match in child_matches:
+            matching_lines.extend(expand_upon_direct_match(match, filters))
 
     return filter_unique(matching_lines)
 
