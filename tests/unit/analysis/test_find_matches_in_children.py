@@ -56,7 +56,7 @@ class TestFindMatchesInChildren(TestCase):
             ([line], [dfilter1]),
         )
 
-    def test_return_parent_and_children_if_match_child(self):
+    def test_return_child_if_match_child(self):
         parent = NginxLineConfig(
             directive="location",
             args=["/"],
@@ -73,10 +73,10 @@ class TestFindMatchesInChildren(TestCase):
         dfilter = DirectiveFilter(directive="return", value="404")
         self.assertEqual(
             get_matching_lines_in_children(parent, filters=[dfilter]),
-            ([parent, line], [dfilter]),
+            ([line], [dfilter]),
         )
 
-    def test_return_parent_and_children_if_match_parent(self):
+    def test_return_parent_if_match_parent(self):
         parent = NginxLineConfig(
             directive="location",
             args=["/"],
@@ -93,5 +93,5 @@ class TestFindMatchesInChildren(TestCase):
         dfilter = DirectiveFilter(directive="location", value="/")
         self.assertEqual(
             get_matching_lines_in_children(parent, filters=[dfilter]),
-            ([parent, line], [dfilter]),
+            ([parent], [dfilter]),
         )
