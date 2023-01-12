@@ -18,11 +18,7 @@ def filter_unique(line_configs: List["NginxLineConfig"]) -> List["NginxLineConfi
     """
     Filter out lines that are already covered by a parent.
     """
-    filtered_lines = []
-    for line_config in line_configs:
-        if not line_config in filtered_lines:
-            filtered_lines.append(line_config)
-    return filtered_lines
+    return list(set(line_configs))
 
 
 def get_children_recursive(line_config: "NginxLineConfig") -> List["NginxLineConfig"]:
