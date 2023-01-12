@@ -13,6 +13,20 @@ from nginx_analysis.dataclasses import (
 )
 
 
+def sort_by_depth(line_configs: List[NginxLineConfig]) -> List[NginxLineConfig]:
+    """
+    Sort by nr of parents, then alphabetically on filename and then by line number.
+    """
+    return sorted(
+        line_configs,
+        key=lambda line_config: (
+            len(get_parents_recursive(line_config)),
+            line_config.file,
+            line_config.line,
+        ),
+    )
+
+
 def nginx_to_regex(nginx: str) -> str:
     """
     Convert a nginx-style regex to a python regex.
@@ -205,7 +219,7 @@ def filter_config(
         for match in child_matches:
             matching_lines.extend(expand_upon_direct_match(match, filters))
 
-    return filter_unique(matching_lines)
+    return sort_by_depth(filter_unique(matching_lines))
 
 
 def get_directive_matches(
