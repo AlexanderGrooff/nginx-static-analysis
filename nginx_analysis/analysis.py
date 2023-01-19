@@ -206,12 +206,15 @@ def expand_upon_direct_match(
 
 
 def filter_config(
-    lines: Iterator[NginxLineConfig],
+    lines: List[NginxLineConfig],
     filters: List[DirectiveFilter],
 ) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the root config
     """
+    if not filters:
+        return sort_by_depth(filter_unique(lines))
+
     matching_lines = []
     for line in lines:
         child_matches, _ = get_matching_lines_in_children(line, filters)
