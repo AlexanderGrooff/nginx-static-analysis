@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional, Set, Tuple
+from typing import Iterator, List, Optional, Set, Tuple, Union
 
 import crossplane
 from loguru import logger
@@ -206,7 +206,7 @@ def expand_upon_direct_match(
 
 
 def filter_config(
-    lines: List[NginxLineConfig],
+    lines: Union[List[NginxLineConfig], Iterator[NginxLineConfig]],
     filters: List[DirectiveFilter],
 ) -> List[NginxLineConfig]:
     """
