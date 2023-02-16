@@ -4,6 +4,7 @@ __pycache__
 *.pyc
 .coverage
 coverage.xml
+.direnv
 
 # Build artifacts
 *.egg-info
