@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Any, Generator, List, Optional, Tuple, TypeVar
+from typing import Any, Generator, Iterator, List, Optional, Tuple, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -14,7 +14,9 @@ def compare_objects(this: T, that: T, fields: List[str]) -> bool:
     return True
 
 
-def filter_unique(line_configs: List["NginxLineConfig"]) -> List["NginxLineConfig"]:
+def filter_unique(
+    line_configs: Union[List["NginxLineConfig"], Iterator["NginxLineConfig"]]
+) -> List["NginxLineConfig"]:
     """
     Filter out lines that are already covered by a parent.
     """

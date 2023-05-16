@@ -52,3 +52,12 @@ class TestDirectiveIntegration(TestCase):
         ]
         for line in expected_lines:
             self.assertIn(line, lines)
+
+    def test_return_line_if_no_filters(self):
+        root_config = self.get_example_root_conf()
+        expected_line = NginxLineConfig(
+            line=1, file=root_config.root_file, directive="user", args=["app"]
+        )
+        user_filters = []
+        lines = filter_config(root_config.lines, user_filters)
+        self.assertEqual(lines[0], expected_line)

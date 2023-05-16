@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional, Set, Tuple
+from typing import Iterator, List, Optional, Set, Tuple, Union
 
 import crossplane
 from loguru import logger
@@ -206,12 +206,15 @@ def expand_upon_direct_match(
 
 
 def filter_config(
-    lines: Iterator[NginxLineConfig],
+    lines: Union[List[NginxLineConfig], Iterator[NginxLineConfig]],
     filters: List[DirectiveFilter],
 ) -> List[NginxLineConfig]:
     """
     Find all values for the given directive name in the root config
     """
+    if not filters:
+        return sort_by_depth(filter_unique(lines))
+
     matching_lines = []
     for line in lines:
         child_matches, _ = get_matching_lines_in_children(line, filters)
