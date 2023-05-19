@@ -1,2 +1,33 @@
+[project]
+name = "nginx-static-analysis"
+version = "0.2.6"
+description = "Parse Nginx configurations in a clear manner for debugging purposes"
+url = "https://github.com/AlexanderGrooff/nginx-static-analysis"
+authors = [
+    {name = "Alexander Grooff", email = "alexandergrooff@gmail.com"},
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.7"
+license = {name = "MIT", file = "LICENSE"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "crossplane==0.5.7",
+    "pydantic==1.8.2",
+    "loguru==0.5.3",
+    "prettytable==2.5.0",
+]
+
+[project.scripts]
+nginx-static-analysis = "nginx_analysis.main:main"
+
+[tool.setuptools.packages.find]
+include = ["nginx_analysis"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [tool.isort]
 profile = "black"  # Make isort compatible with black

@@ -78,3 +78,22 @@ app@wifbtb-testalex-magweb-cmbl:~$ tail /var/log/nginx/access.log -n1 | nginx-st
 
 The analysis creates filters based on the incoming loglines. Those filters are combined with the arguments given
 to the `nginx-static-analysis` command.
+
+## Development
+
+This package is using Python >=3.7. Simply `pip install -r requirements/base.txt` into your local venv to install the dependencies.
+
+### Testing
+
+This package uses `pytest` for testing. You can run the tests with `pytest`, which will invoke an Nginx container with some sample configs.
+If not present, it'll be built automatically.
+
+### Build
+
+This package can be build locally:
+
+```bash
+# Arch
+pip install -r requirements/development.txt
+makepkg -sCf  # Include -i to install the package locally
+```

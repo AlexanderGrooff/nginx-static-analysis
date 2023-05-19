@@ -4,6 +4,7 @@ __pycache__
 *.pyc
 .coverage
 coverage.xml
+.direnv
 
 # Build artifacts
 *.egg-info
@@ -11,3 +12,6 @@ build
 deb_dist
 dist
 nginx-static-analysis*.tar.gz
+nginx-static-analysis*.pkg.tar*
+nginx-static-analysis
+pkg
