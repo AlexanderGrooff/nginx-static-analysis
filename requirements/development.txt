@@ -1,14 +1,14 @@
 -r base.txt
 
-ipython
-docker-compose
-pre-commit
+ipython==8.14.0
+docker-compose==1.29.2
+pre-commit==3.3.3
 
-pytest
-coverage
+pytest==7.4.0
+coverage==7.2.7
 
 # Build
 wheel
-build
-setuptools
-installer
+build==0.10.0
+setuptools==65.5.0
+installer==0.7.0

@@ -11,7 +11,7 @@ function uninstall {
 trap uninstall EXIT
 
 python setup.py install
-NSA=/usr/local/bin/nginx-static-analysis
+NSA=$VIRTUAL_ENV/bin/nginx-static-analysis
 
 echo "Ensure the basic functionality works"
 $NSA --help || (echo "NOT OK" && exit 1)
