@@ -6,7 +6,7 @@ set -e
 # Verify versions matches the git tag
 SETUP_VERSION=$(grep -oP '(?<=version=")[^"]+' setup.py)
 PKGBUILD_VERSION=$(grep -oP '(?<=pkgver=)[^ ]+' PKGBUILD)
-PYPROJECT_VERSION=$(grep -oP '(?<=version = )[^ ]+' pyproject.toml)
+PYPROJECT_VERSION=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
 GIT_TAG=$(git describe --tags --abbrev=0)
 test "$SETUP_VERSION" == "$GIT_TAG" || (echo "setup.py is version ${SETUP_VERSION} but should be ${GIT_TAG}" && exit 1)
 test "$PKGBUILD_VERSION" == "$GIT_TAG" || (echo "PKGBUILD is version ${PKGBUILD_VERSION} but should be ${GIT_TAG}" && exit 1)

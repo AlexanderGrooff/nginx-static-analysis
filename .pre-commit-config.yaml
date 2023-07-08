@@ -27,3 +27,9 @@ repos:
     hooks:
     -   id: isort
         name: isort (python)
+-   repo: local
+    hooks:
+      - id: verify-setup
+        name: verify versions in setup
+        entry: scripts/verify_setup.sh
+        language: script
