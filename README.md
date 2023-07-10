@@ -16,7 +16,7 @@ You're able to find the `nginx-static-analysis` binary in the following places:
 pip install nginx-static-analysis
 
 # Arch
-yay -S nginx-static-analysis
+yay -S nginx-static-analysis-git
 ```
 
 ## Analysing your Nginx configuration
