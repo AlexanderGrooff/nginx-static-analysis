@@ -1,6 +1,6 @@
 pkgbase = nginx-static-analysis-git
 	pkgdesc = Static analysis tool for Nginx configuration files
-	pkgver = 0.2.8
+	pkgver = 0.2.9
 	pkgrel = 1
 	url = https://github.com/AlexanderGrooff/nginx-static-analysis
 	arch = any

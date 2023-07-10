@@ -1,6 +1,6 @@
 # Maintainer: Alexander Grooff <alexandergrooff@gmail.com>
 pkgname=nginx-static-analysis-git
-pkgver=0.2.8
+pkgver=0.2.9
 pkgrel=1
 pkgdesc="Static analysis tool for Nginx configuration files"
 url="https://github.com/AlexanderGrooff/nginx-static-analysis"
