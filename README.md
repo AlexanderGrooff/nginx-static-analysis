@@ -6,6 +6,19 @@ Parse Nginx configurations on your host and filter for directives/values.
 
 Largely powered by [Crossplane](https://github.com/nginxinc/crossplane).
 
+## Installation
+
+You're able to find the `nginx-static-analysis` binary in the following places:
+
+```bash
+
+# Pip
+pip install nginx-static-analysis
+
+# Arch
+yay -S nginx-static-analysis
+```
+
 ## Analysing your Nginx configuration
 
 You can list any directive within your Nginx configuration. For example, show all `listen` directives:
