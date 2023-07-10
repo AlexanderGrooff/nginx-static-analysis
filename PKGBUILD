@@ -2,7 +2,7 @@
 pkgname=nginx-static-analysis-git
 pkgver=0.2.8
 pkgrel=1
-pkgdesc="Static analysis tool of Nginx configuration files"
+pkgdesc="Static analysis tool for Nginx configuration files"
 url="https://github.com/AlexanderGrooff/nginx-static-analysis"
 arch=("any")
 license=("MIT")
