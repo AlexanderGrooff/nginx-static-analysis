@@ -22,3 +22,8 @@ SETUP_REQUIREMENTS=$(sed -n -e '/requirements = """/,/"""/ p' setup.py | grep -v
 
 BASE_REQUIREMENTS=$(cat requirements/base.txt)
 test "$SETUP_REQUIREMENTS" == "$BASE_REQUIREMENTS" || exit 1
+
+if [[ `command -v makepkg` ]]; then
+    makepkg --printsrcinfo > .SRCINFO
+    git diff --exit-code .SRCINFO || (echo ".SRCINFO is out of date, run makepkg --printsrcinfo and commit the changes" && exit 1)
+fi
