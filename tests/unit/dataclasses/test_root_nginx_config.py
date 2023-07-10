@@ -10,6 +10,7 @@ class TestRootNginxConfig(TestCase):
                 root_config.root_dir / "nginx.conf",
                 root_config.root_dir / "servers/example.com.conf",
                 root_config.root_dir / "servers/testalex.hypernode.io.conf",
+                root_config.root_dir / "servers/verylargefile.conf",
                 root_config.root_dir / "servers/include/nested.conf",
             ],
         )

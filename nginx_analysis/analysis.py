@@ -92,9 +92,6 @@ def get_unique_directives(root_config: RootNginxConfig) -> List[str]:
     unique_directives: Set[str] = set()
     for line_config in root_config.lines:
         directives = get_unique_directives_in_line(line_config)
-        logger.debug(
-            f"Found directives on line {line_config.line} in file {line_config.file}: {directives}"
-        )
         unique_directives = unique_directives.union(directives)
     return list(unique_directives)
 
@@ -136,7 +133,6 @@ def get_matching_lines_in_children(
         # No filters, meaning that the line matches directly
         return [line], []
 
-    logger.debug(f"Checking if line {line} matches filters: {filters}")
     matched_filter = is_partial_direct_match(line, filters)
     if matched_filter:
         logger.debug(f"Found match in children: {line}")
@@ -146,9 +142,6 @@ def get_matching_lines_in_children(
         for child in line.children:
             remaining_filters = [f for f in filters if f not in all_matched_filters]
             if remaining_filters:
-                logger.debug(
-                    f"Looking for remaining filters in child {child}: {remaining_filters}"
-                )
                 _, child_matched_filters = get_matching_lines_in_children(
                     child, remaining_filters
                 )

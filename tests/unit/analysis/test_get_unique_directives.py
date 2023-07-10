@@ -11,6 +11,7 @@ class TestGetUniqueDirectives(TestCase):
             sorted(get_unique_directives(root_config)),
             [
                 "default_type",
+                "deny",
                 "events",
                 "gzip",
                 "gzip_disable",
