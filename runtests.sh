@@ -4,6 +4,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 set -e
 
+bash scripts/verify_setup.sh
+
 if type -p docker-compose > /dev/null; then
     DC_BIN="docker-compose"
 else

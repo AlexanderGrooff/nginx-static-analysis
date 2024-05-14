@@ -12,7 +12,7 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 requirements = """
 crossplane==0.5.7
-pydantic==1.8.2
+pydantic==1.10.13
 loguru==0.5.3
 prettytable==2.5.0
 """
