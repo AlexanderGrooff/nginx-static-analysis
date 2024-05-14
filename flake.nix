@@ -38,6 +38,7 @@
           (with pkgs."python${pyVersion}Packages"; [
             wheel
             venvShellHook
+            pre-commit
         ]);
 
         # This is to expose the venv in PYTHONPATH
