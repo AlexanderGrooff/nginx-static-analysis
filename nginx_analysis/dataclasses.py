@@ -75,12 +75,12 @@ class NginxLineConfig(BaseModel):
     directive: str
     line: int
     args: List[str]
-    file: Optional[Path]  # Only filled in after parsing
-    block: Optional[List["NginxLineConfig"]]
-    parent: Optional["NginxLineConfig"]
+    file: Optional[Path] = None  # Only filled in after parsing
+    block: Optional[List["NginxLineConfig"]] = None
+    parent: Optional["NginxLineConfig"] = None
     children: List["NginxLineConfig"] = []
-    definitely_no_match = False
-    full_match = False
+    definitely_no_match: bool = False
+    full_match: bool = False
 
     @property
     def lineage(self) -> List[str]:
@@ -116,7 +116,7 @@ class NginxFileConfig(BaseModel):
     status: str
     errors: List[str]
     parsed: List[NginxLineConfig]
-    included_in: Optional[Tuple["NginxFileConfig", NginxLineConfig]]
+    included_in: Optional[Tuple["NginxFileConfig", NginxLineConfig]] = None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NginxFileConfig):
