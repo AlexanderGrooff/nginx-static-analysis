@@ -47,6 +47,16 @@ def get_parents_recursive(line_config: "NginxLineConfig") -> List["NginxLineConf
     return parents
 
 
+def convert_to_abs_path(root_dir: Path, file_path: str) -> str:
+    """
+    Make a path absolute based on the root directory.
+    """
+    path = Path(file_path)
+    if path.is_absolute():
+        return str(path)
+    return str(root_dir / path)
+
+
 class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None

@@ -44,4 +44,7 @@ echo "Show nested includes"
 $NSA -f server_name=testalex.hypernode.io |& grep "/nested" && (echo "NOT OK" && exit 1)
 $NSA -f server_name=example.com |& grep "/nested" || (echo "NOT OK" && exit 1)
 
+echo "Show relative includes"
+test $($NSA -f server_name=testalex.hypernode.io -d location |& grep "/relative" | wc -l) = 2 || (echo "NOT OK" && exit 1)
+
 echo "All tests passed"
