@@ -47,6 +47,16 @@ def get_parents_recursive(line_config: "NginxLineConfig") -> List["NginxLineConf
     return parents
 
 
+def convert_to_abs_path(root_dir: Path, file_path: str) -> str:
+    """
+    Make a path absolute based on the root directory.
+    """
+    path = Path(file_path)
+    if path.is_absolute():
+        return str(path)
+    return str(root_dir / path)
+
+
 class DirectiveFilter(BaseModel):
     directive: str
     value: Optional[str] = None
@@ -75,12 +85,12 @@ class NginxLineConfig(BaseModel):
     directive: str
     line: int
     args: List[str]
-    file: Optional[Path]  # Only filled in after parsing
-    block: Optional[List["NginxLineConfig"]]
-    parent: Optional["NginxLineConfig"]
+    file: Optional[Path] = None  # Only filled in after parsing
+    block: Optional[List["NginxLineConfig"]] = None
+    parent: Optional["NginxLineConfig"] = None
     children: List["NginxLineConfig"] = []
-    definitely_no_match = False
-    full_match = False
+    definitely_no_match: bool = False
+    full_match: bool = False
 
     @property
     def lineage(self) -> List[str]:
@@ -116,7 +126,7 @@ class NginxFileConfig(BaseModel):
     status: str
     errors: List[str]
     parsed: List[NginxLineConfig]
-    included_in: Optional[Tuple["NginxFileConfig", NginxLineConfig]]
+    included_in: Optional[Tuple["NginxFileConfig", NginxLineConfig]] = None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NginxFileConfig):

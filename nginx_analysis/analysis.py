@@ -7,6 +7,7 @@ from nginx_analysis.dataclasses import (
     DirectiveFilter,
     NginxLineConfig,
     RootNginxConfig,
+    convert_to_abs_path,
     filter_unique,
     get_children_recursive,
     get_parents_recursive,
@@ -38,7 +39,8 @@ def nginx_to_regex(nginx: str) -> str:
 def set_parents_in_include(root_config: RootNginxConfig, block_config: NginxLineConfig):
     if block_config.directive == "include":
         for file_path in block_config.args:
-            nested_file_configs = root_config.get_files(nginx_to_regex(file_path))
+            abs_path = convert_to_abs_path(root_config.root_dir, file_path)
+            nested_file_configs = root_config.get_files(nginx_to_regex(abs_path))
             for nested_file_config in nested_file_configs:
                 for nested_line_config in nested_file_config.parsed:
                     nested_line_config.parent = block_config
