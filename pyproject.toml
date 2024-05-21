@@ -1,6 +1,6 @@
 [project]
 name = "nginx-static-analysis"
-version = "0.3.0"
+version = "0.3.1"
 description = "Parse Nginx configurations in a clear manner for debugging purposes"
 authors = [
     {name = "Alexander Grooff", email = "alexandergrooff@gmail.com"},
