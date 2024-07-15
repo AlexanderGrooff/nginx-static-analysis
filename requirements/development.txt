@@ -9,5 +9,5 @@ coverage==7.2.7
 # Build
 wheel
 build==0.10.0
-setuptools==65.5.1
+setuptools==70.0.0
 installer==0.7.0
