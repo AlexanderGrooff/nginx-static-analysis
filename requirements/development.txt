@@ -3,7 +3,7 @@
 ipython==8.14.0
 pre-commit==3.3.3
 
-pytest==7.4.0
+pytest==9.0.3
 coverage==7.2.7
 
 # Build
